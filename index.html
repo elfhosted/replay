@@ -227,6 +227,8 @@
   ol.tl li:hover .scrub, .scrub:focus-visible, .scrub.armed { opacity:1; }
   .scrub:hover, .scrub:focus-visible { color:var(--g4); outline:0; }
   .scrub.armed { color:var(--g4); background:var(--card2); }
+  /* No progress entry to delete: holds the gutter open so the list edge is straight. */
+  .scrub.noscrub { visibility:hidden; }
   ol.tl a:hover, ol.tl a:focus-visible { background:var(--card2); outline:0; }
   ol.tl .art { width:2.1rem; height:3.1rem; border-radius:6px; object-fit:cover; flex:0 0 auto;
                background:var(--card2); }
@@ -338,6 +340,7 @@
         <p class="fine">Any Nuvio-compatible backend, including one you host yourself. The page asks it for <code>/.well-known/nuvio</code> to discover its public key, exactly as the Nuvio apps do.</p>
       </div>
       <div id="panel-pw" style="display:grid;gap:.6rem">
+        <p class="fine" id="credhint" style="margin:0"></p>
         <input id="email" type="email" placeholder="Email" autocomplete="off" spellcheck="false">
         <input id="password" type="password" placeholder="Password" autocomplete="off">
       </div>
@@ -640,6 +643,25 @@
     custom:  { name: 'your backend', host: '', base: '', kind: 'nuvio', key: '' }
   };
 
+  // The form asks for an email and a password, which says nothing about WHICH
+  // account. Name it, and name the one people reasonably confuse it with.
+  var CREDS = {
+    stremio: { email: 'Your Stremio email', pw: 'Your Stremio password',
+               hint: 'Sign in with your <b>Stremio</b> account, the one you use at web.stremio.com.' },
+    nuvio:   { email: 'Your Nuvio email', pw: 'Your Nuvio password',
+               hint: 'Sign in with your <b>Nuvio</b> account from <b>nuvio.tv</b>. Not your ' +
+                     'ElfHosted login, and not the app that plays the video.' },
+    custom:  { email: 'Your email on that backend', pw: 'Your password on that backend',
+               hint: 'Sign in with the account held by <b>the backend you named above</b>, ' +
+                     'which is the one that stores your history.' }
+  };
+  function applyCreds() {
+    var c = CREDS[backendId] || CREDS.stremio;
+    $('email').placeholder = c.email;
+    $('password').placeholder = c.pw;
+    $('credhint').innerHTML = c.hint;
+  }
+
   var backendId = 'stremio', backend = BACKENDS.stremio;
   var session = null, realEmail = '', allRows = [], extras = {}, metaById = {};
   var timelineMode = 'played', yearFilter = 'all', monthFilter = 'all';
@@ -773,6 +795,7 @@
       refreshResume();
       if (backendId !== 'stremio') { selectMode(true); }
       $('targethost').textContent = backend.host || 'the backend you name';
+      applyCreds();
       applyGuide();
       // The picker stays live after a RePlay has rendered, so switching
       // backends brings the form back rather than stranding the visitor.
@@ -1669,7 +1692,7 @@
                 gnames[0] + ' leads, ' + n(gcounts[gnames[0]]) + ' titles']);
     }
     if (gnames.length >= 12) { out.push(['\u{1F9ED}', 'Wide-ranging', n(gnames.length) + ' genres in your record']); }
-    else if (gnames.length && gnames.length <= 4) { out.push(['\u{1F3AF}', 'Single-minded', 'Only ' + n(gnames.length) + ' genres show up']); }
+    else if (gnames.length && gnames.length <= 4) { out.push(['\u{1F3AF}', 'Single-minded', gnames.length === 1 ? 'Only one genre shows up' : 'Only ' + n(gnames.length) + ' genres show up']); }
 
     var years = rows.filter(function (r) { return r.played; }).map(yearOf).filter(Boolean);
     if (years.length >= 15) {
@@ -1691,11 +1714,81 @@
     if (t.takenOut >= 10) { out.push(['\u{1F5C4}', 'Tidy, in theory', n(t.takenOut) + ' removed, still held']); }
     if (t.neverAdded > t.inLibrary * 10 && t.neverAdded >= 50) { out.push(['\u{1F392}', 'Travels light', n(t.neverAdded) + ' watched without adding']); }
     if (c.busiestDay >= 5) { out.push(['\u{1F97E}', 'The long march', c.busiestDay + ' titles in a single day']); }
+    // --- shape of the record, rather than the clock ---
+    var play = rows.filter(function (r) { return r.played && r.last; });
+
+    // Accounts also carry tv, events and other rows, which are neither films nor
+    // episodes: counting them as either would misreport the split. And a Stremio
+    // series row is a whole show rather than one episode, so the label says
+    // "series", which is true whichever backend the record came from.
+    var series = 0, films = 0;
+    play.forEach(function (r) {
+      if (r.type === 'series') { series++; }
+      else if (r.type === 'movie') { films++; }
+    });
+    if (series + films >= 20) {
+      if (series / (series + films) > 0.8) { out.push(['\u{1F4FA}', 'One more episode', Math.round(series / (series + films) * 100) + '% series']); }
+      else if (films / (series + films) > 0.7) { out.push(['\u{1F3AC}', 'Sits for the whole tale', Math.round(films / (series + films) * 100) + '% films']); }
+    }
+
+    // Longest run of consecutive days with something played.
+    var days = {}, msByDay = {};
+    play.forEach(function (r) {
+      var k = r.last.getFullYear() + '-' + r.last.getMonth() + '-' + r.last.getDate();
+      days[k] = 1;
+      msByDay[k] = (msByDay[k] || 0) + (r.watchedMs || 0);
+    });
+    var keys = Object.keys(days).map(function (k) { var a = k.split('-'); return new Date(+a[0], +a[1], +a[2]).getTime(); }).sort(function (a, b) { return a - b; });
+    var run = keys.length ? 1 : 0, best = run, DAY = 86400000;
+    for (var i = 1; i < keys.length; i++) {
+      run = (keys[i] - keys[i - 1] <= DAY * 1.5) ? run + 1 : 1;
+      if (run > best) { best = run; }
+    }
+    if (best >= 5) { out.push(['\u{1F5FC}', 'Kept the watch', best + ' days in a row']); }
+    if (keys.length >= 10) {
+      var gap = 0;
+      for (var j = 1; j < keys.length; j++) { gap = Math.max(gap, keys[j] - keys[j - 1]); }
+      // Both ends of the gap are days you watched something, so the days away
+      // is the span between them minus one.
+      var gapDays = Math.max(0, Math.round(gap / DAY) - 1);
+      if (gapDays >= 90) { out.push(['\u26F5', 'Sailed west, then came back', gapDays + ' days away at the longest']); }
+    }
+    // Stremio reports watched time cumulatively per title while `last` is only
+    // the most recent timestamp, so months of viewing would pile onto a single
+    // day and invent a marathon. Only the per-episode backends can answer this.
+    if (backendId !== 'stremio') {
+      var longest = 0;
+      Object.keys(msByDay).forEach(function (k) { longest = Math.max(longest, msByDay[k]); });
+      if (longest >= 6 * 3600000) { out.push(['\u{1F56F}', 'A long night in Moria', Math.round(longest / 3600000) + ' hours in one day']); }
+    }
+
+    // The series you gave the most of yourself to.
+    var byShow = {};
+    play.forEach(function (r) {
+      if (r.type !== 'series') { return; }
+      var nm = (r.name || '').replace(/\s*S\d{1,2}E\d{1,3}.*$/i, '').trim() || r.id;
+      byShow[nm] = (byShow[nm] || 0) + 1;
+    });
+    var top = Object.keys(byShow).sort(function (a, b) { return byShow[b] - byShow[a]; })[0];
+    if (top && byShow[top] >= 12) { out.push(['\u{1F9ED}', 'Walked every league', byShow[top] + ' episodes of ' + top]); }
+
+    // A Stremio series row is the whole show and its timesWatched adds up across
+    // episodes, so a big number there means many episodes rather than a rewatch.
+    // Films are counted honestly, and the per-episode backends are fine either way.
+    var mostPlays = 0, mostName = '';
+    rows.forEach(function (r) {
+      if (backendId === 'stremio' && r.type !== 'movie') { return; }
+      if ((r.plays || 0) > mostPlays) { mostPlays = r.plays; mostName = r.name || ''; }
+    });
+    if (mostPlays >= 4) { out.push(['\u{1F4D6}', 'Knows it by heart', mostName + ', ' + mostPlays + ' times']); }
+
+    if (t.oldest) { out.push(['\u{1F4DC}', 'Keeper of the annals', 'Your record starts ' + t.oldest.getFullYear()]); }
+
     if (!out.length) { out.push(['\u{1F331}', 'Early days', 'Not enough history to read a pattern']); }
 
     var ul = $('badges');
     ul.textContent = '';
-    out.slice(0, 9).forEach(function (b, idx) {
+    out.slice(0, 12).forEach(function (b, idx) {
       var li = document.createElement('li');
       li.className = 'badge';
       li.style.animationDelay = (idx * 60) + 'ms';
@@ -1907,11 +2000,24 @@
 
       // Only where the backend can genuinely delete one entry. Stremio cannot,
       // so it never gets a button that would imply otherwise.
-      if (backendId !== 'stremio' && row.progressKey) {
+      if (backendId !== 'stremio') {
         var scrub = document.createElement('button');
         scrub.type = 'button';
         scrub.className = 'scrub';
         scrub.textContent = 'Scrub';
+        // A watched flag with no progress row behind it: there is nothing for
+        // the backend to delete. The button still occupies the gutter, because
+        // .scrub is only transparent, not removed -- drop it and this one row
+        // stretches wider than the rest.
+        if (!row.progressKey) {
+          scrub.classList.add('noscrub');
+          scrub.disabled = true;
+          scrub.tabIndex = -1;
+          scrub.setAttribute('aria-hidden', 'true');
+          li.appendChild(scrub);
+          list.appendChild(li);
+          return;
+        }
         scrub.title = 'Delete this entry from your backend';
         scrub.addEventListener('click', function (ev) {
           ev.preventDefault();
@@ -2594,6 +2700,7 @@
   // switch or a click, so on a fresh load the button rendered with no text at
   // all and looked absent until you switched away and back.
   selectMode(true);
+  applyCreds();
   applyGuide();
   syncColdCta();
   // The version links to its own release tag: auditing `main` proves nothing
