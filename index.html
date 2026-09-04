@@ -362,7 +362,7 @@
     </div>
     <div id="status" class="status"></div>
     <div class="prog" id="prog" hidden><i></i></div>
-    <p class="fine" id="signinfine" style="margin-top:1.2rem">Your details go from RePlay straight to <span id="targethost">api.strem.io</span>. There is no server behind RePlay, so nothing reaches us and your password is never kept anywhere. The session key the backend hands back is held for this browser tab so a refresh does not sign you out, and is discarded when you close it. Tick the box above and it is kept on this device instead, until you sign out or press forget.</p>
+    <p class="fine" id="signinfine" style="margin-top:1.2rem">Your details go from RePlay straight to <span id="targethost">api.strem.io</span>. There is no server behind RePlay, so nothing reaches us and your password is never kept anywhere. The session key the backend hands back is held for this browser tab so a refresh does not sign you out, and is discarded when you close it. Tick the box above and it is kept on this device instead, until you sign out or press forget. Rather than take that on trust, <a href="https://github.com/elfhosted/replay" target="_blank" rel="noopener noreferrer">read the source</a>: RePlay is a single HTML file, published in full, so you can follow exactly where your password goes.</p>
   </section>
 
   <section id="results" hidden>
@@ -551,6 +551,7 @@
 
   <footer>
 <a id="footer-guide" href="#" target="_blank" rel="noopener noreferrer">Read the guide</a><span id="footer-guide-sep"> &middot;</span>
+    <a href="https://github.com/elfhosted/replay" target="_blank" rel="noopener noreferrer">Read the source</a> &middot;
     <span id="version"></span>
     No analytics, no cookies, no third-party code, no fonts. Artwork and genres come from Stremio's own Cinemeta, the same source your app already uses. The optional signup above posts your address to Kit only when you submit it. <span id="tzline"></span>
   </footer>
@@ -2593,7 +2594,19 @@
   selectMode(true);
   applyGuide();
   syncColdCta();
-  $('version').textContent = (VERSION.indexOf('__') === 0 ? 'dev build' : VERSION) + ' \u00b7 ';
+  // The version links to its own release tag: auditing `main` proves nothing
+  // about the build you are actually running.
+  (function () {
+    var vEl = $('version');
+    if (VERSION.indexOf('__') === 0) { vEl.textContent = 'dev build \u00b7 '; return; }
+    var a = document.createElement('a');
+    a.href = 'https://github.com/elfhosted/replay/releases/tag/' + VERSION;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = VERSION;
+    vEl.appendChild(a);
+    vEl.appendChild(document.createTextNode(' \u00b7 '));
+  })();
   $('tzline').textContent = 'Times shown in ' + LOC.timeZone + ', formatted for ' + LOC.locale + '.';
 })();
 </script>
