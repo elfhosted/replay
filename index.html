@@ -1,0 +1,2601 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>RePlay: your Stremio year in review | ElfHosted</title>
+<meta name="description" content="A free year in review for Stremio and Nuvio, like Wrapped but for what you watch. See your hours, top titles, genres and watch history, and find out who else can see them. Runs entirely in your browser.">
+<link rel="canonical" href="https://replay.elfhosted.com/">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ElfHosted">
+<meta property="og:url" content="https://replay.elfhosted.com/">
+<meta property="og:title" content="RePlay: your Stremio year in review">
+<meta property="og:description" content="Like Wrapped, but for what you watch. Your hours, top titles and genres, plus who else can see them. Free, and it runs entirely in your browser.">
+<meta property="og:image" content="https://replay.elfhosted.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="RePlay by ElfHosted: a year in review for Stremio and Nuvio">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RePlay: your Stremio year in review">
+<meta name="twitter:description" content="Like Wrapped, but for what you watch. Your hours, top titles and genres, plus who else can see them. Free, and it runs entirely in your browser.">
+<meta name="twitter:image" content="https://replay.elfhosted.com/og.png">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#08090b; --bg2:#101216; --card:#15171b; --card2:#1e2126;
+    --fg:#f0f2f4; --dim:#a3a9b0; --faint:#6c737b; --line:#272b31;
+    /* ElfHosted greens (#50762E / #8D9E40 / #36511F), lifted for a dark page */
+    --g1:#a3d45f; --g2:#4fbf9e; --g3:#e0b44a; --g4:#d98e4a; --g5:#7fa8d9;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI Variable", "Segoe UI", Roboto, sans-serif;
+    --num: "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --r:20px;
+    --pageW: min(62rem, calc(100vw - 1.75rem));
+  }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:400 16px/1.5 var(--sans);
+         -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  main { width:var(--pageW); margin:0 auto; padding:2rem 0 5rem; }
+  #topbar { position:sticky; top:0; z-index:20; padding:.7rem 0 .65rem; margin:0 0 1rem;
+            background:color-mix(in srgb, var(--bg) 88%, transparent);
+            backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+            border-bottom:1px solid var(--line); }
+  .brandmark { display:inline-flex; align-items:center; gap:.55rem; text-decoration:none;
+               margin:0 0 .7rem; color:var(--fg); }
+  .brandmark img { display:block; width:30px; height:30px; }
+  .brandmark span { font:600 .95rem/1 var(--sans); letter-spacing:-.01em; color:var(--dim); }
+  .brandmark b { color:var(--fg); font-weight:700; }
+  #signedin { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-top:.7rem;
+              font-size:.85rem; color:var(--dim); }
+  #signedin b { color:var(--fg); font-weight:650; }
+  .optin { display:flex; align-items:flex-start; gap:.55rem; margin:.15rem 0 .2rem;
+           font:400 .82rem/1.5 var(--sans); color:var(--faint); cursor:pointer; }
+  .optin input { width:auto; flex:0 0 auto; margin:.2rem 0 0; padding:0; }
+  .signup { display:flex; gap:.4rem; margin:.6rem 0 .5rem; }
+  .signup input { flex:1 1 auto; min-width:0; padding:.5rem .7rem; border:1px solid var(--line);
+                  border-radius:10px; background:var(--bg); color:inherit; font:400 .85rem/1.2 var(--sans); }
+  .signup input:focus { outline:0; border-color:var(--g1); }
+  .signup button { border:0; border-radius:10px; padding:.5rem .9rem; cursor:pointer;
+                   background:linear-gradient(96deg,var(--g1),var(--g2)); color:#fff;
+                   font:700 .82rem/1 var(--sans); white-space:nowrap; }
+  .signup button[disabled] { opacity:.5; cursor:not-allowed; }
+  a { color:inherit; }
+
+  /* ---- motion ---- */
+  @keyframes rise { from { opacity:0; transform:translateY(22px); } to { opacity:1; transform:none; } }
+  @keyframes pop { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:none; } }
+  @keyframes grow { from { transform:scaleY(0); } to { transform:none; } }
+  @keyframes drift { from { transform:scale(1.08) translateY(0); } to { transform:scale(1.15) translateY(-12px); } }
+  .reveal { opacity:0; }
+  .reveal.in { animation:rise .62s cubic-bezier(.2,.7,.3,1) both; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal.in { opacity:1; animation:none !important; }
+    .hero-art { animation:none !important; }
+  }
+
+  /* ---- type ---- */
+  h1 { font:700 2.1rem/1.08 var(--num); letter-spacing:-.035em; margin:0; }
+  h2 { font:700 1.35rem/1.15 var(--num); letter-spacing:-.028em; margin:2.75rem 0 .9rem; }
+  .eyebrow { font:700 .68rem/1 var(--sans); letter-spacing:.18em; text-transform:uppercase;
+             color:var(--faint); margin:0 0 .7rem; }
+  .sub { color:var(--dim); margin:.5rem 0 0; font-size:.95rem; line-height:1.55; }
+  p { margin:0 0 1rem; }
+
+  /* ---- hero ---- */
+  .hero { position:relative; border-radius:var(--r); overflow:hidden; min-height:21rem;
+          display:flex; flex-direction:column; justify-content:flex-end; padding:1.6rem;
+          background:linear-gradient(150deg,#241a3d,#0d0a17); isolation:isolate; }
+  .hero-art { position:absolute; inset:0; background-size:cover; background-position:center;
+              opacity:0; z-index:-2; animation:drift 24s ease-in-out infinite alternate;
+              transition:opacity 1.4s ease; }
+  .hero-art.on { opacity:.42; }
+  .hero::after { content:""; position:absolute; inset:0; z-index:-1;
+                 background:linear-gradient(0deg,rgba(8,7,12,.97) 0%,rgba(8,7,12,.92) 30%,
+                            rgba(8,7,12,.62) 62%,rgba(8,7,12,.18) 100%),
+                            linear-gradient(90deg,rgba(8,7,12,.75) 0%,rgba(8,7,12,.15) 55%,transparent 80%); }
+  .hero .eyebrow { color:#cfc8de; }
+  .hero .fig { font:800 clamp(3.6rem,15vw,5.6rem)/.88 var(--num); letter-spacing:-.055em;
+               background:linear-gradient(96deg,var(--g1),var(--g3) 75%);
+               -webkit-background-clip:text; background-clip:text; color:transparent;
+               margin:0 0 .1rem; font-variant-numeric:tabular-nums; }
+  .hero .cap { font-size:1.05rem; color:var(--fg); max-width:26rem; }
+  .hero .eyebrow { color:#cfc8de; margin-bottom:.25rem; }
+  .hero .herotitle { font:700 clamp(1.3rem,4.2vw,1.9rem)/1.15 var(--num); letter-spacing:-.03em;
+                     margin:0 0 .5rem; max-width:30rem; }
+  .hero .cap b { font-weight:700; }
+
+  /* ---- cards ---- */
+  .cards { display:grid; gap:.7rem; grid-template-columns:repeat(2,1fr); margin:.7rem 0 0; }
+  .card { background:var(--card); border-radius:var(--r); padding:1.15rem 1.15rem 1.05rem;
+          position:relative; overflow:hidden; }
+  .card .numrow { display:flex; align-items:center; gap:.6rem; margin:0 0 .3rem; }
+  .card .em { font-size:1.3rem; line-height:1; }
+  .card .n { font:800 2.1rem/1 var(--num); letter-spacing:-.04em;
+             font-variant-numeric:tabular-nums; }
+  .card .k { font-size:.85rem; color:var(--dim); line-height:1.35; display:block; }
+  .card.wide { grid-column:1 / -1; }
+  .card.tint1 { background:linear-gradient(145deg,rgba(163,212,95,.13),rgba(163,212,95,.02) 68%),var(--card); }
+  .card.tint1 .n { color:var(--g1); }
+  .card.tint2 { background:linear-gradient(145deg,rgba(79,191,158,.14),rgba(79,191,158,.02) 68%),var(--card); }
+  .card.tint2 .n { color:var(--g2); }
+  .card.tint3 { background:linear-gradient(145deg,rgba(224,180,74,.13),rgba(224,180,74,.02) 68%),var(--card); }
+  .card.tint3 .n { color:var(--g3); }
+  .card.tint4 { background:linear-gradient(145deg,rgba(217,142,74,.13),rgba(217,142,74,.02) 68%),var(--card); }
+  .card.tint4 .n { color:var(--g4); }
+  .card.tint5 { background:linear-gradient(145deg,rgba(127,168,217,.13),rgba(127,168,217,.02) 68%),var(--card); }
+  .card.tint5 .n { color:var(--g5); }
+
+  /* ---- badges ---- */
+  .badges { display:flex; flex-wrap:wrap; gap:.55rem; margin:0; padding:0; list-style:none; }
+  .badge { display:flex; align-items:center; gap:.6rem; background:var(--card);
+           border-radius:999px; padding:.5rem .95rem .5rem .55rem; animation:pop .45s both; }
+  .badge .em { width:2rem; height:2rem; border-radius:50%; display:grid; place-items:center;
+               font-size:1rem; background:linear-gradient(135deg,#2c3a22,#44562f); }
+  .badge b { font-size:.9rem; font-weight:650; }
+  .badge span { display:block; font-size:.76rem; color:var(--dim); }
+
+  /* ---- top titles ---- */
+  ol.top { list-style:none; margin:0; padding:0; display:grid; gap:.6rem; }
+  ol.top li { display:flex; align-items:center; gap:.85rem; background:var(--card);
+              border-radius:14px; padding:.55rem .95rem .55rem .55rem; }
+  ol.top .rank { font:800 1.05rem/1 var(--num); width:1.6rem; text-align:center; color:var(--faint);
+                 font-variant-numeric:tabular-nums; }
+  ol.top .art { width:2.9rem; height:4.3rem; border-radius:8px; object-fit:cover; flex:0 0 auto;
+                background:var(--card2); }
+  ol.top .meta { flex:1 1 auto; min-width:0; }
+  ol.top .nm { font-weight:650; display:block; white-space:nowrap; overflow:hidden;
+               text-overflow:ellipsis; text-decoration:none; color:inherit; }
+  ol.top a.nm:hover, ol.top a.nm:focus-visible { text-decoration:underline; outline:0; }
+  ol.top .sm { font-size:.8rem; color:var(--dim); }
+  ol.top .hrs { font:700 .95rem/1 var(--num); color:var(--g1); font-variant-numeric:tabular-nums; }
+
+  /* ---- genres ---- */
+  .genres { display:flex; flex-wrap:wrap; gap:1.05rem .6rem; margin:0 0 1rem; padding:0; list-style:none; }
+  .chip { border-radius:999px; padding:.5rem 1rem; font-size:.85rem; font-weight:600;
+          background:var(--card2); }
+  .holders { display:grid; gap:.7rem; grid-template-columns:repeat(auto-fit,minmax(13rem,1fr)); }
+  .holder { background:var(--card); border-radius:var(--r); padding:1.1rem 1.15rem; cursor:default;
+            transition:background .15s ease, box-shadow .15s ease; }
+  .holder:hover { background:var(--card2); box-shadow:inset 0 0 0 1px var(--line); }
+  .holder b { display:block; font:700 1rem/1.2 var(--num); letter-spacing:-.01em; margin-bottom:.5rem; }
+  .holder .who { display:block; font-size:.88rem; color:var(--dim); margin-bottom:.3rem; }
+  .holder .read { display:block; font-size:.82rem; color:var(--faint); line-height:1.5; }
+  .holder.mine { background:linear-gradient(150deg,#1e2f14,#101709);
+                 box-shadow:inset 0 0 0 1px rgba(163,212,95,.35); }
+  .holder.mine:hover { background:linear-gradient(150deg,#25391a,#141d0c);
+                       box-shadow:inset 0 0 0 1px rgba(163,212,95,.55); }
+  .holder.mine b { color:var(--g1); }
+  .holder.mine .who { color:var(--g4); font-weight:600; }
+  a.cta-link { display:inline-block; text-decoration:none; border-radius:999px;
+               padding:.75rem 1.35rem; font:700 .95rem/1 var(--sans); color:#f1f5ec;
+               background:linear-gradient(96deg,#50762e,#8d9e40); }
+  .breakdown-details { margin-top:1.6rem; }
+  .breakdown-details > summary { cursor:pointer; font:600 .85rem/1 var(--sans); color:var(--dim);
+                                 padding:.6rem 0; list-style:revert; }
+  .breakdown-details > summary:hover { color:var(--fg); }
+  .breakdown-details[open] > summary { margin-bottom:.7rem; }
+  #peoplenote a { color:var(--dim); text-decoration-color:color-mix(in srgb, currentColor 45%, transparent);
+                  text-underline-offset:3px; }
+  #peoplenote a:hover, #peoplenote a:focus-visible { color:var(--fg); text-decoration-color:currentColor; }
+  a.chip { display:inline-block; text-decoration:none; transition:filter .15s ease; }
+  a.chip:hover, a.chip:focus-visible { filter:brightness(1.35); outline:0; }
+  .gbar { display:flex; height:.55rem; border-radius:999px; overflow:hidden; margin:0 0 .8rem; }
+  .gbar i { display:block; }
+
+  /* ---- clock ---- */
+  .clock { display:flex; align-items:flex-end; gap:3px; height:7rem; margin:.4rem 0 .5rem; }
+  .clock i { flex:1; border-radius:4px 4px 2px 2px; transform-origin:bottom;
+             background:linear-gradient(180deg,var(--g1),#36511f); animation:grow .7s both; }
+  .clock i.peak { background:linear-gradient(180deg,var(--g3),var(--g1)); }
+  .axis { display:flex; justify-content:space-between; font-size:.75rem; color:var(--faint); }
+
+  /* ---- timeline ---- */
+  .switch { display:flex; gap:.4rem; margin:0 0 1rem; flex-wrap:wrap; }
+  .switch button { background:var(--card); color:var(--dim); border:0; border-radius:999px;
+                   padding:.45rem .9rem; font:600 .82rem/1 var(--sans); cursor:pointer; }
+  .switch button[aria-selected="true"] { background:var(--fg); color:var(--bg); }
+  /* Height is reserved even when there is nothing to toggle, so switching
+     backends does not shunt the inputs up and down the page. */
+  #modes { min-height:1.7rem; margin:.9rem 0 .35rem; }
+  #mode-toggle { background:none; border:0; padding:0; cursor:pointer; color:var(--dim);
+                 font:400 .85rem/1.7 var(--sans); text-decoration:underline;
+                 text-decoration-color:color-mix(in srgb, currentColor 40%, transparent);
+                 text-underline-offset:3px; }
+  #mode-toggle:hover, #mode-toggle:focus-visible { color:var(--fg); outline:0; }
+  #mode-toggle[hidden] { visibility:hidden; display:inline-block !important; }
+  #timeline { max-height:32rem; overflow-y:auto; overscroll-behavior:contain;
+              -webkit-mask-image:linear-gradient(180deg,#000 88%,transparent);
+              mask-image:linear-gradient(180deg,#000 88%,transparent); }
+  #timeline.open { max-height:none; overflow:visible; -webkit-mask-image:none; mask-image:none; }
+  .tlyear { position:sticky; top:0; z-index:2; background:var(--bg); padding:.9rem 0 .4rem;
+            font:800 1.5rem/1 var(--num); letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+  .tlmonth { font:700 .66rem/1 var(--sans); letter-spacing:.16em; text-transform:uppercase;
+             color:var(--faint); margin:.9rem 0 .45rem; }
+  ol.tl { list-style:none; margin:0; padding:0; display:grid; gap:.35rem; }
+  ol.tl li { display:flex; align-items:center; gap:.35rem; }
+  ol.tl a { flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:.75rem;
+            text-decoration:none; background:var(--card); border-radius:12px;
+            padding:.45rem .85rem .45rem .45rem; }
+  .scrub { flex:0 0 auto; border:0; border-radius:10px; cursor:pointer; background:var(--card);
+           color:var(--faint); font:600 .74rem/1 var(--sans); padding:.6rem .7rem;
+           opacity:0; transition:opacity .12s ease, color .12s ease; }
+  ol.tl li:hover .scrub, .scrub:focus-visible, .scrub.armed { opacity:1; }
+  .scrub:hover, .scrub:focus-visible { color:var(--g4); outline:0; }
+  .scrub.armed { color:var(--g4); background:var(--card2); }
+  ol.tl a:hover, ol.tl a:focus-visible { background:var(--card2); outline:0; }
+  ol.tl .art { width:2.1rem; height:3.1rem; border-radius:6px; object-fit:cover; flex:0 0 auto;
+               background:var(--card2); }
+  ol.tl .nm { flex:1 1 auto; min-width:0; font-size:.92rem; white-space:nowrap;
+              overflow:hidden; text-overflow:ellipsis; }
+  ol.tl .meta { flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end;
+                gap:.22rem; min-width:5.6rem; }
+  ol.tl .bar { width:5rem; height:6px; border-radius:999px; background:#2b3826; overflow:hidden; }
+  ol.tl .bar i { display:block; height:100%; border-radius:999px;
+                 background:linear-gradient(90deg,var(--g1),var(--g3)); }
+  ol.tl .st { font-size:.72rem; color:var(--dim); font-variant-numeric:tabular-nums; line-height:1.1; }
+  ol.tl .d { font-size:.72rem; color:var(--faint); font-variant-numeric:tabular-nums; line-height:1.1; }
+  ol.tl li.unplayed .nm { color:var(--dim); }
+
+  /* ---- the turn ---- */
+  /* ---- record + table ---- */
+  dl.rec { margin:0; display:grid; gap:0; }
+  dl.rec > div { display:flex; justify-content:space-between; gap:1.2rem; align-items:baseline;
+                 padding:.6rem 0; border-bottom:1px solid var(--line); }
+  dl.rec dt { font-size:.82rem; color:var(--faint); }
+  dl.rec dd { margin:0; font-size:.9rem; text-align:right; word-break:break-word; }
+  .scroll { overflow-x:auto; border-radius:var(--r); background:var(--card); }
+  table { border-collapse:collapse; width:100%; font-size:.88rem; }
+  th, td { text-align:left; padding:.6rem .85rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  thead th { font:700 .66rem/1 var(--sans); letter-spacing:.13em; text-transform:uppercase; color:var(--faint); }
+  tbody tr:last-child td { border-bottom:0; }
+  td:last-child, th:last-child { background:rgba(163,212,95,.09); }
+  th:last-child { color:var(--g1); }
+
+  /* ---- form ---- */
+  form { display:grid; gap:.6rem; }
+  input { width:100%; padding:.85rem 1rem; border:1px solid var(--line); border-radius:12px;
+          background:var(--card); color:inherit; font:400 1rem/1.2 var(--sans); }
+  input:focus { outline:0; border-color:var(--g2); }
+  button.cta { background:linear-gradient(96deg,var(--g1),var(--g2)); color:#fff; border:0;
+               border-radius:999px; padding:.9rem 1.5rem; font:700 1rem/1 var(--sans); cursor:pointer; }
+  button.ghost { background:var(--card); color:var(--fg); border:0; border-radius:999px;
+                 padding:.6rem 1.1rem; font:600 .85rem/1 var(--sans); cursor:pointer; }
+  button[disabled] { opacity:.5; cursor:not-allowed; }
+  .fine { font-size:.82rem; line-height:1.55; color:var(--faint); }
+  .status { display:none; font-size:.9rem; padding:.7rem 0; color:var(--dim); }
+  .status.show { display:block; }
+  .status.err { color:#e0794a; }
+  .prog { height:2px; background:var(--line); border-radius:2px; overflow:hidden; margin:.7rem 0 0; }
+  .prog i { display:block; height:100%; width:0; background:linear-gradient(90deg,#50762e,var(--g1));
+            transition:width .3s ease; }
+  ul.profiles { list-style:none; margin:0 0 1rem; padding:0; display:grid; gap:.5rem; }
+  ul.profiles li { display:flex; align-items:center; gap:.7rem; background:var(--card);
+                   border-radius:12px; padding:.6rem .9rem; font-size:.9rem; }
+  ul.profiles .av { width:1.9rem; height:1.9rem; border-radius:50%; flex:0 0 auto; display:grid;
+                    place-items:center; font:700 .72rem/1 var(--sans); color:#fff;
+                    background:linear-gradient(135deg,var(--g2),var(--g1)); overflow:hidden; }
+  ul.profiles img.av { display:block; object-fit:cover; }
+  ul.profiles .art { width:1.9rem; height:2.8rem; border-radius:6px; flex:0 0 auto;
+                     object-fit:cover; background:var(--card2); }
+  ul.profiles .pn { flex:1 1 auto; font-weight:600; }
+  ul.profiles .pl { font-size:.78rem; color:var(--dim); }
+  ul.shelf { list-style:none; margin:.9rem 0 0; padding:0; }
+  ul.shelf li { display:flex; align-items:baseline; gap:.8rem; padding:.6rem 0;
+                border-bottom:1px solid var(--line); }
+  ul.shelf .c { font:800 1.1rem/1 var(--num); min-width:3.2rem; text-align:right;
+                font-variant-numeric:tabular-nums; }
+  ul.shelf .l { flex:1 1 auto; font-size:.88rem; }
+  ul.shelf .l b { display:block; font-weight:650; font-size:.92rem; }
+  ul.shelf .l span { color:var(--dim); }
+  .withheld { background:var(--card); border-radius:var(--r); padding:1.1rem 1.15rem; margin:0 0 1rem; }
+  .withheld ul { margin:.5rem 0 0; padding-left:1.1rem; color:var(--dim); font-size:.88rem; }
+  .withheld li { margin:.25rem 0; }
+  ul.options { list-style:none; margin:0; padding:0; }
+  ul.options li { padding:.85rem 0; border-bottom:1px solid var(--line); font-size:.92rem; color:var(--dim); }
+  ul.options strong { color:var(--fg); font-weight:650; }
+  code { font:600 .8rem/1 var(--mono); color:var(--dim); }
+  [hidden] { display:none !important; }
+  footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line);
+           font-size:.8rem; line-height:1.65; color:var(--faint); }
+  footer a { color:var(--dim); text-underline-offset:3px; }
+  footer a:hover { color:var(--fg); }
+  @media (max-width:30rem) { .cards { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+
+  <header id="topbar">
+    <a class="brandmark" href="https://elfhosted.com" target="_blank" rel="noopener noreferrer">
+      <img src="data:image/png;base64,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" alt="" width="30" height="30">
+      <span><b>RePlay</b> | ElfHosted</span>
+    </a>
+    <div class="switch" role="tablist" id="backends">
+      <button type="button" data-backend="stremio" role="tab" aria-selected="true">Stremio</button>
+      <button type="button" data-backend="nuvio" role="tab" aria-selected="false">Nuvio</button>
+      <button type="button" data-backend="custom" role="tab" aria-selected="false">Your own Nuvio backend</button>
+    </div>
+    <div id="signedin" hidden>
+      <span id="signedintext"></span>
+      <button type="button" class="ghost" id="switchacct">Use a different account</button>
+    </div>
+  </header>
+
+
+  <section id="signin">
+    <h1>Your activity, and who can see it</h1>
+    <p class="sub" id="standfirst"></p>
+
+    <div id="modes"><button type="button" id="mode-toggle"></button></div>
+    <form id="form">
+      <div id="panel-url" hidden style="display:grid;gap:.35rem">
+        <input id="baseurl" type="url" placeholder="https://your-backend.example.com" autocomplete="off" spellcheck="false">
+        <p class="fine">Any Nuvio-compatible backend, including one you host yourself. The page asks it for <code>/.well-known/nuvio</code> to discover its public key, exactly as the Nuvio apps do.</p>
+      </div>
+      <div id="panel-pw" style="display:grid;gap:.6rem">
+        <input id="email" type="email" placeholder="Email" autocomplete="off" spellcheck="false">
+        <input id="password" type="password" placeholder="Password" autocomplete="off">
+      </div>
+      <div id="panel-key" hidden style="display:grid;gap:.6rem">
+        <input id="authkey" type="password" placeholder="Auth key" autocomplete="off" spellcheck="false">
+        <input id="guide-email" type="email" placeholder="Email, only if you want the guide" autocomplete="email" spellcheck="false">
+      </div>
+      <label class="optin">
+        <input type="checkbox" id="guide-optin" checked autocomplete="off">
+        <span id="guide-optin-label"></span>
+      </label>
+      <label class="optin">
+        <input type="checkbox" id="remember" autocomplete="off">
+        <span>Stay signed in on this device</span>
+      </label>
+      <div style="margin-top:.45rem"><button type="submit" class="cta" id="go">Generate my RePlay</button></div>
+    </form>
+    <div id="resume" class="card" hidden style="margin-top:1rem;padding:.85rem 1rem">
+      <span class="k" id="resumetext"></span>
+      <p style="margin:.7rem 0 0;display:flex;gap:.5rem;flex-wrap:wrap">
+        <button type="button" class="cta" id="resumego" style="padding:.55rem 1.1rem;font-size:.9rem">Resume</button>
+        <button type="button" class="ghost" id="resumenew">Start a new session</button>
+      </p>
+    </div>
+    <div id="status" class="status"></div>
+    <div class="prog" id="prog" hidden><i></i></div>
+    <p class="fine" id="signinfine" style="margin-top:1.2rem">Your details go from RePlay straight to <span id="targethost">api.strem.io</span>. There is no server behind RePlay, so nothing reaches us and your password is never kept anywhere. The session key the backend hands back is held for this browser tab so a refresh does not sign you out, and is discarded when you close it. Tick the box above and it is kept on this device instead, until you sign out or press forget.</p>
+  </section>
+
+  <section id="results" hidden>
+
+    <div class="hero reveal" id="hero">
+      <div class="hero-art" id="heroart"></div>
+      <div class="hero-art" id="heroart2"></div>
+      <p class="eyebrow" id="heroperiod" style="margin-bottom:.55rem">Your record</p>
+      <h1 class="herotitle" id="herotitle"></h1>
+      <span class="fig" id="herofig">0</span>
+      <p class="cap" id="herocap"></p>
+    </div>
+
+    <div class="switch" id="years" style="margin-top:1rem"></div>
+    <div class="switch" id="months" hidden style="margin-top:.5rem"></div>
+
+    <div class="cards" id="cards"></div>
+    <ul class="shelf" id="shelfstates"></ul>
+    <p class="fine" id="shelfnote" style="margin-top:.9rem"></p>
+
+
+    <h2 class="reveal">Your badges</h2>
+    <ul class="badges" id="badges"></ul>
+
+    <h2 class="reveal">Most watched</h2>
+    <ol class="top" id="top"></ol>
+
+    <h2 class="reveal">What you’re into</h2>
+    <div class="gbar" id="gbar"></div>
+    <ul class="genres" id="genres"></ul>
+    <p class="fine" id="genrenote"></p>
+
+    <h2 class="reveal">Which decade is yours?</h2>
+    <div class="gbar" id="decbar"></div>
+    <ul class="genres" id="decades"></ul>
+    <p class="fine" id="decnote"></p>
+
+    <h2 class="reveal">The company you keep</h2>
+    <ul class="genres" id="people"></ul>
+    <p class="fine" id="peoplenote"></p>
+
+    <h2 class="reveal">When you keep watch</h2>
+    <div class="clock" id="clock" role="img" aria-label="Activity by hour of day"></div>
+    <div class="axis"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+    <p class="fine" id="clocknote"></p>
+
+    <h2 class="reveal">Your chronicle</h2>
+    <div class="switch" role="tablist">
+      <button type="button" id="tl-played" role="tab" aria-selected="true">Played</button>
+      <button type="button" id="tl-all" role="tab" aria-selected="false">Everything held</button>
+    </div>
+    <div id="timeline"></div>
+    <p class="fine" id="timelinenote"></p>
+    <p><button type="button" class="ghost" id="tl-expand">Show the whole timeline</button></p>
+
+    <section id="followsec" hidden>
+      <h2 class="reveal">New episodes waiting for you</h2>
+      <ul class="profiles" id="follows"></ul>
+      <p class="fine" id="follownote"></p>
+    </section>
+
+    <section id="profilesec" hidden>
+      <h2 class="reveal">Who is in the party</h2>
+      <ul class="profiles" id="profiles"></ul>
+      <p class="fine" id="profilenote"></p>
+    </section>
+
+    <section id="withheldsec" hidden>
+      <h2 class="reveal">Held, but not in your copy</h2>
+      <div class="withheld">
+        <p class="fine" style="margin:0">The export this backend hands you leaves some categories out by design. They are still on the server.</p>
+        <ul id="withheld"></ul>
+      </div>
+    </section>
+
+
+    <h2>The account</h2>
+    <dl class="rec" id="account"></dl>
+    <p class="fine" style="margin-top:.9rem">
+      <button type="button" class="ghost" id="unmask">Show email address</button>
+      &nbsp;Masked by default, so this is safe to screenshot.
+    </p>
+
+  </section>
+
+  <h2>Who can see your activity</h2>
+  <p class="fine" style="margin-bottom:1.1rem">Sync only works if the record lives on a server, so all three keep the same kinds of entry. The difference is whose server it is, and who there can read it.</p>
+
+  <div class="holders">
+    <div class="holder">
+      <b>Stremio</b>
+      <span class="who">Stremio&rsquo;s servers</span>
+      <span class="read">Readable by their staff and infrastructure.</span>
+    </div>
+    <div class="holder">
+      <b>Nuvio</b>
+      <span class="who">NuvioMedia&rsquo;s servers</span>
+      <span class="read">Readable by their staff and infrastructure.</span>
+    </div>
+    <div class="holder mine">
+      <b>A Nuvio backend you run</b>
+      <span class="who">Yours</span>
+      <span class="read">Readable by you, and by whoever hosts it.</span>
+    </div>
+  </div>
+
+  <p class="fine" style="margin:1.2rem 0 0">Stremio has no backend you can run yourself, so moving means changing app as well as server: only Nuvio's apps can be pointed at one. That backend does store <em>more</em> than Stremio's, because it also holds your profiles, your devices and your provider keys, which is how your apps set themselves up the moment you sign in. Whoever runs the server can read it, and that includes us if you have us run it. What changes is that you pick who, your record sits in its own database rather than pooled with everyone else's, and you can export the lot and take it elsewhere whenever you like.</p>
+
+  <p class="fine" style="margin:1rem 0 0">Whether any of that matters is your call. Plenty of people read this and shrug, which is a fine answer.</p>
+
+  <p id="cta-cold" style="margin:1.3rem 0 0">
+    <a class="cta-link" id="cta-backend" href="#" target="_blank" rel="noopener noreferrer">Get your own Nuvio backend &rarr;</a>
+    <span class="fine" style="display:block; margin-top:.7rem">Or generate a RePlay above and see what is in your own account first.</span>
+  </p>
+
+
+  <details class="breakdown-details">
+    <summary>The full breakdown, category by category</summary>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Record</th><th>Stremio</th><th>Nuvio</th><th>Yours</th></tr></thead>
+        <tbody>
+          <tr><td>Email address and sign-up date</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Every title in your library</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Playback position, per episode, to the second</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Date and time of every session</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Viewing profiles within the household</td><td>Subscribers only</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Profile PINs</td><td>Whether one is set</td><td>The hash itself</td><td>The hash itself</td></tr>
+          <tr><td>List of your signed-in devices</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Debrid and metadata API keys</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Which addon supplied each item</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Trakt or other tracker tokens</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Skip-intro data sent off your device</td><td>Every scrub you make, plus a hash of the file you played</td><td>Only if you add an IntroDb key, and only where the intro starts and ends</td><td>Only if you add an IntroDb key, and only where the intro starts and ends</td></tr>
+          <tr><td>Whether you support the project, and since when</td><td>Yes, as Stremio Supporter</td><td>Yes, via Patreon</td><td>Not applicable</td></tr>
+          <tr><td>Your support shown on a public page</td><td>No</td><td>Yes, name and avatar</td><td>No</td></tr>
+          <tr><td>Who operates the database</td><td>Stremio</td><td>NuvioMedia</td><td>You</td></tr>
+          <tr><td>You can export the whole account</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>You can put that export back</td><td>Yes</td><td>No, the restore is refused</td><td>Yes</td></tr>
+          <tr><td>You can remove one entry</td><td>No, there is no delete</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>You can remove the title as well as the history</td><td>Only by deleting the account</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Deleting takes the backups with it</td><td>Not possible on a shared database</td><td>Not possible on a shared database</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="fine" style="margin:.9rem 0 0">Everything above was checked against the live APIs rather than the documentation, in September 2026. The rows about what you can do were tested by doing it.</p>
+  </details>
+
+  <section id="actions" hidden>
+      <h2>Don't like the answer?</h2>
+      <p class="fine" style="margin:0 0 .5rem">Take a copy first. RePlay already has it, so it is one click. <span id="export-note"></span></p>
+      <p style="margin:0 0 .5rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center">
+        <button type="button" class="ghost" id="dl-export" disabled>Download my data</button>
+        <input type="file" id="restore-file" accept="application/json,.json"
+               style="width:auto; flex:0 1 auto; padding:.45rem .6rem; font:400 .8rem/1.2 var(--sans); border-radius:10px">
+        <button type="button" class="ghost" id="restore-go">Put it back</button>
+        <span class="fine" id="restore-msg"></span>
+      </p>
+      <p class="fine" style="margin:0 0 1.4rem">RePlay can write that file back to Stremio, or to a backend you run. Nuvio's own backend will hand you a copy but will not take one back, so there it is a record rather than a rescue.</p>
+
+      <ul class="options">
+        <li id="clear-option" hidden>
+          <span id="clear-copy-stremio">
+            <strong>Clear the playback data.</strong> Wipes the positions, dates and watch counts for whichever period you choose. Your library and addons are untouched.
+            <br><br><strong>It does not remove the titles.</strong> Stremio can read entries and write entries, and that is all it can do, so a title stays in your account with nothing recorded against it. Restoring your copy undoes this.
+          </span>
+          <span id="clear-copy-nuvio" hidden>
+            <strong>Delete the playback entries.</strong> Removes them outright rather than blanking them, for whichever period you choose. Your library, addons and profiles are untouched.
+            <br><br><strong>This one cannot be undone</strong> on a hosted Nuvio account, because it will not accept a restore. On a backend you run yourself it can.
+          </span>
+          <p style="margin:.8rem 0 0; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center">
+            <select id="clear-scope" style="width:auto; padding:.5rem .7rem; border-radius:10px; border:1px solid var(--line); background:var(--card); color:inherit; font:400 .85rem/1.2 var(--sans)"></select>
+            <button type="button" class="ghost" id="clear-go">Clear playback data</button>
+            <span class="fine" id="clear-msg"></span>
+          </p>
+        </li>
+        <li>
+          <strong>Delete the account.</strong> The only way to remove the titles as well. It lives in your app under Settings, and it takes the whole log with it.
+        </li>
+        <li>
+          <strong>Keep it somewhere of your own.</strong> The only option where you can remove a single entry and put it back. Delete the backend later and its backups go too, because they only ever held your data. On a shared one that is not possible, since your rows sit in the same backup files as everybody else's.
+          <p style="margin:.7rem 0 0"><a class="cta-link" id="cta-move" href="#" target="_blank" rel="noopener noreferrer">Get your own Nuvio backend &rarr;</a></p>
+        </li>
+      </ul>
+      <p style="margin-top:1.2rem"><button type="button" class="ghost" id="signout">Sign out and invalidate this key</button></p>
+  </section>
+
+  <footer>
+<a id="footer-guide" href="#" target="_blank" rel="noopener noreferrer">Read the guide</a><span id="footer-guide-sep"> &middot;</span>
+    <span id="version"></span>
+    No analytics, no cookies, no third-party code, no fonts. Artwork and genres come from Stremio's own Cinemeta, the same source your app already uses. The optional signup above posts your address to Kit only when you submit it. <span id="tzline"></span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  // Replaced at image build time. Left as the placeholder when the file is
+  // opened straight from a checkout, which is how you can tell the two apart.
+  var VERSION = '__REPLAY_VERSION__';
+  var CINEMETA = 'https://v3-cinemeta.strem.io';
+  var GUIDES = {
+    stremio: { label: "ElfHosted's Stremio Addons Guide",
+               form: '7292129',
+               url: 'https://docs.elfhosted.com/stremio-addons/guide/' },
+    // A custom backend is a Nuvio backend, so it gets the Nuvio guide too.
+    // The url must exist before RePlay ships or the footer link is dead; a
+    // `null` url makes the link hide itself instead.
+    nuvio: { label: "ElfHosted's Nuvio Addons Guide", form: '9880439',
+             url: 'https://nuvio-addons-guide.elfhosted.com/' },
+    custom: { label: "ElfHosted's Nuvio Addons Guide", form: '9880439',
+              url: 'https://nuvio-addons-guide.elfhosted.com/' }
+  };
+  function guideFor(id) { return GUIDES[id] || GUIDES.stremio; }
+  function kitForm(g) { return 'https://app.kit.com/forms/' + g.form + '/subscriptions'; }
+  var SPELLS = [
+    'Scrying the palant\u00edr', 'Consulting the archives', 'Reading the runes',
+    'Counting the hours in Rivendell', 'Waking the loremasters', 'Sorting the chronicle',
+    'Asking the ents, who take their time', 'Deciphering moon-letters',
+    'Waiting for the right moonlight', 'Speaking friend, entering',
+    'Dusting the mathom-house', 'Checking the Red Book for smudges',
+    'Counting second breakfasts', 'Recalculating in hobbit years',
+    'Measuring the road, which goes ever on', 'Lighting the beacons',
+    'Waiting for the beacons to be answered', 'Rousing the Riders',
+    'Filing the paperwork at Bree', 'Cross-referencing the Shire census',
+    'Tallying the barrels down the river', 'Polishing the mithril',
+    'Consulting Elrond, briefly', 'Asking Bilbo to hurry up',
+    'Convening a moot, which has not yet begun', 'Arguing with a dwarf about the tally',
+    'Rereading the appendices', 'Counting orcs, then counting again',
+    'Waiting on the eagles', 'Sharpening the quills',
+    'Checking under the Hill', 'Negotiating with a spider',
+    'Untangling Sam\u2019s rope', 'Feeding the horses at Edoras',
+    'Looking for a wizard, who is never late', 'Herding the m\u00fbmakil',
+    'Confirming nothing is stirring in Mordor', 'Weighing this against a Balrog',
+    'Consulting the Thain', 'Checking the pantry twice'
+  ];
+  var spellTimer = null;
+
+  // Shuffled per run and drained before reshuffling, so a slow account gets a
+  // different sequence each time and never the same line twice in a row.
+  function shuffled(list) {
+    var a = list.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function startSpells() {
+    var deck = shuffled(SPELLS), i = 0;
+    say(deck[0] + '\u2026');
+    spellTimer = setInterval(function () {
+      i++;
+      if (i >= deck.length) { deck = shuffled(SPELLS); i = 0; }
+      say(deck[i] + '\u2026');
+    }, 1600);
+  }
+  function stopSpells() { if (spellTimer) { clearInterval(spellTimer); spellTimer = null; } }
+  // Store product, not published at time of writing. Check it resolves before
+  // this page goes live or both CTAs land on a 404.
+  var OWN_BACKEND_URL = 'https://store.elfhosted.com/product/mellon';
+  var STREMIO_WEB = 'https://web.stremio.com/#/detail';
+
+  // Nuvio's publishable key is the one its own clients ship. A self-hosted
+  // backend publishes its own at /.well-known/nuvio, which is how the Nuvio
+  // apps discover a custom server, so a URL is all anyone needs to type.
+  var BACKENDS = {
+    stremio: { name: 'Stremio', host: 'api.strem.io', base: 'https://api.strem.io', kind: 'stremio' },
+    nuvio:   { name: 'Nuvio', host: 'api.nuvio.tv', base: 'https://api.nuvio.tv', kind: 'nuvio',
+               key: 'sb_publishable_1Clq8rlTVACkdcZuqr6_AD__xUUC_EN' },
+    custom:  { name: 'your backend', host: '', base: '', kind: 'nuvio', key: '' }
+  };
+
+  var backendId = 'stremio', backend = BACKENDS.stremio;
+  var session = null, realEmail = '', allRows = [], extras = {}, metaById = {};
+  var timelineMode = 'played', yearFilter = 'all', monthFilter = 'all';
+  var wantsGuide = false, guideEmail = '';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var statusEl = $('status');
+
+  // Everything renders in the visitor's own locale and zone. The servers store
+  // UTC; these are what those instants look like where they live.
+  var LOC = Intl.DateTimeFormat().resolvedOptions();
+  var fmtDay = new Intl.DateTimeFormat(LOC.locale, { day: 'numeric', month: 'short' });
+  var fmtFull = new Intl.DateTimeFormat(LOC.locale, { dateStyle: 'long' });
+  var fmtMonth = new Intl.DateTimeFormat(LOC.locale, { month: 'long' });
+
+  function say(msg, isErr) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status show' + (isErr ? ' err' : '');
+  }
+  function clear() { statusEl.className = 'status'; }
+  function n(x) { return Number(x || 0).toLocaleString(LOC.locale); }
+  function plural(c, one, many) { return c === 1 ? one : (many || one + 's'); }
+  function maskEmail(a) {
+    if (!a || a.indexOf('@') < 0) { return 'not set'; }
+    var q = a.split('@');
+    return q[0].slice(0, 1) + '•'.repeat(Math.max(q[0].length - 1, 3)) + '@' + q[1];
+  }
+  function monthYear(d) {
+    return new Intl.DateTimeFormat(LOC.locale, { month: 'long', year: 'numeric' }).format(d);
+  }
+  function clockStr(ms) {
+    var t = Math.round(ms / 1000), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60);
+    var pad = function (x) { return String(x).padStart(2, '0'); };
+    return h ? h + ':' + pad(m) + ':' + pad(t % 60) : m + ':' + pad(t % 60);
+  }
+  function toDate(v) {
+    if (!v) { return null; }
+    var d = new Date(v);
+    return isNaN(d) ? null : d;
+  }
+  function hostOf(url) {
+    try { return new URL(url).host; } catch (e) { return ''; }
+  }
+
+  // ---- session storage --------------------------------------------------
+  // The password is never stored. What is stored is the session key the backend
+  // returns, which is a full-account bearer credential — so it lives in
+  // sessionStorage (this tab only) unless the visitor opts into keeping it, and
+  // signing out invalidates it upstream as well as deleting it here. Every
+  // access is guarded: private windows throw rather than return null.
+  var STORE_PREFIX = 'replay.session.';
+  var LAST_KEY = 'replay.last';
+  var LEGACY_KEY = 'replay.session';
+  var REMEMBER_DAYS = 30;
+
+  function stores() {
+    var out = [];
+    try { if (window.sessionStorage) { out.push(window.sessionStorage); } } catch (e) {}
+    try { if (window.localStorage) { out.push(window.localStorage); } } catch (e) {}
+    return out;
+  }
+  // One slot per backend, so signing in to Nuvio does not evict a Stremio
+  // session you are still using. Keyed by backend id; a custom backend stores
+  // its own base URL inside the payload, so one custom slot is enough.
+  function keyFor(id) { return STORE_PREFIX + id; }
+
+  function saveSession(remember) {
+    if (!session) { return; }
+    var payload = JSON.stringify({
+      backendId: backendId, kind: session.kind, at: Date.now(),
+      authKey: session.authKey || null,
+      cfg: session.cfg ? { base: session.cfg.base, key: session.cfg.key, token: session.cfg.token } : null
+    });
+    forgetSession(backendId);
+    try {
+      (remember ? window.localStorage : window.sessionStorage).setItem(keyFor(backendId), payload);
+    } catch (e) {}
+    try { window.sessionStorage.setItem(LAST_KEY, backendId); } catch (e) {}
+  }
+
+  function loadSession(id) {
+    var found = null;
+    stores().forEach(function (st) {
+      if (found) { return; }
+      try {
+        var raw = st.getItem(keyFor(id));
+        if (!raw) { return; }
+        var v = JSON.parse(raw);
+        if (st === window.localStorage &&
+            Date.now() - (v.at || 0) > REMEMBER_DAYS * 864e5) { st.removeItem(keyFor(id)); return; }
+        v._persistent = (st === window.localStorage);
+        found = v;
+      } catch (e) {}
+    });
+    return found;
+  }
+
+  function forgetSession(id) {
+    stores().forEach(function (st) {
+      try { st.removeItem(keyFor(id)); } catch (e) {}
+    });
+  }
+
+  // A single-slot version shipped first; drop anything it left behind.
+  stores().forEach(function (st) {
+    try { st.removeItem(LEGACY_KEY); } catch (e) {}
+  });
+
+  // ---- backend picker ---------------------------------------------------
+  Array.prototype.forEach.call($('backends').children, function (b) {
+    b.addEventListener('click', function () {
+      backendId = b.dataset.backend;
+      backend = BACKENDS[backendId];
+      Array.prototype.forEach.call($('backends').children, function (o) {
+        o.setAttribute('aria-selected', o === b ? 'true' : 'false');
+      });
+      $('panel-url').hidden = backendId !== 'custom';
+      if (shownBackendId === backendId) {
+        $('results').hidden = false;
+        $('actions').hidden = false;
+        syncColdCta();
+        $('signedin').hidden = false;
+        $('signin').hidden = true;
+        return;
+      }
+      $('signin').hidden = false;
+      $('results').hidden = true;
+      $('actions').hidden = true;
+      syncColdCta();
+      $('signedin').hidden = true;
+      refreshResume();
+      if (backendId !== 'stremio') { selectMode(true); }
+      $('targethost').textContent = backend.host || 'the backend you name';
+      applyGuide();
+      // The picker stays live after a RePlay has rendered, so switching
+      // backends brings the form back rather than stranding the visitor.
+      if ($('signin').hidden) {
+        $('signin').hidden = false;
+        $('signedin').hidden = true;
+        $('signin').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+      }
+    });
+  });
+  // A saved session should stand in for the sign-in form, not sit below it, so
+  // the visitor is offered one choice rather than two competing ones.
+  function showSignInForm(show) {
+    $('form').hidden = !show;
+    $('signinfine').hidden = !show;
+    $('mode-toggle').hidden = !show || backendId !== 'stremio';
+    $('resume').hidden = show;
+  }
+
+  var STANDFIRST = {
+    stremio: 'Stremio keeps your library and your playback position on its servers, so your ' +
+             'place follows you between devices. RePlay reads that record back to you, and ' +
+             'runs entirely in your browser.',
+    nuvio: 'Nuvio keeps your library, your playback position and your household profiles on ' +
+           'its servers. RePlay reads that record back to you, and runs entirely in your browser.',
+    custom: 'Point RePlay at a Nuvio-compatible backend you run and it reads your record ' +
+            'straight from there. Nothing passes through us, and RePlay runs entirely in ' +
+            'your browser.'
+  };
+
+  function applyGuide() {
+    $('standfirst').textContent = STANDFIRST[backendId] || STANDFIRST.stremio;
+    var g = guideFor(backendId);
+    $('guide-optin-label').textContent = 'Send me ' + g.label +
+      " (you'll receive a confirmation request from Kit, our provider)";
+    var fg = $('footer-guide');
+    fg.hidden = !g.url;
+    $('footer-guide-sep').hidden = !g.url;
+    if (g.url) {
+      fg.href = g.url;
+      fg.textContent = 'Read ' + g.label;
+    }
+  }
+
+  var authMode = 'pw';
+  function selectMode(pw) {
+    authMode = pw ? 'pw' : 'key';
+    $('panel-pw').hidden = !pw;
+    $('panel-key').hidden = pw;
+    $('mode-toggle').textContent = pw ? 'Use an auth key instead'
+                                      : 'Use email and password instead';
+  }
+  $('switchacct').addEventListener('click', function () {
+    $('signin').hidden = false;
+    $('signedin').hidden = true;
+    showSignInForm(true);
+    savedSession = null;
+    $('signin').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  });
+  $('cta-move').href = OWN_BACKEND_URL;
+  $('cta-backend').href = OWN_BACKEND_URL;
+
+  // The cold CTA and the one at the end of the options are the same offer, so
+  // only ever show one of them.
+  function syncColdCta() { $('cta-cold').hidden = !$('actions').hidden; }
+
+  // The export is already in memory, so handing it over is a blob rather than
+  // another round trip. It carries addon URLs, which are bearer credentials for
+  // whatever sits behind them, so the note says so before anyone shares the file.
+  $('dl-export').addEventListener('click', function () {
+    if (!exportDoc) { return; }
+    var blob = new Blob([JSON.stringify(exportDoc, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (backendId === 'stremio' ? 'stremio' : 'nuvio') + '-export-' +
+                 new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  });
+
+  // Kit's form endpoint answers `access-control-allow-origin: *`, so the address
+  // posts straight from here. That keeps the Kit script off the page, which
+  // would otherwise bring third-party code and cookies onto a page whose whole
+  // argument is about who holds your data. Fire and forget: a newsletter that
+  // does not take must never break the RePlay.
+  function subscribeGuide(email) {
+    if (!email || email.indexOf('@') < 1) { return; }
+    fetch(kitForm(guideFor(backendId)), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'email_address=' + encodeURIComponent(email)
+    }).then(function (r) {
+      if (r.ok) { $('signedintext').textContent += ' Guide on its way, check your inbox to confirm.'; }
+    }).catch(function () {});
+  }
+
+  $('mode-toggle').addEventListener('click', function () { selectMode(authMode !== 'pw'); });
+
+  // ---- Stremio adapter --------------------------------------------------
+  // Every payload carries the `type` discriminator the shipped Stremio clients
+  // send. Copied from a working client rather than written from the docs.
+  function stremioCall(path, body) {
+    return fetch(BACKENDS.stremio.base + path, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j && j.error) { throw new Error(j.error.message || 'Stremio returned an error'); }
+      return j.result;
+    });
+  }
+
+  function readStremio(creds) {
+    var start = creds.authKey
+      ? Promise.resolve(creds.authKey)
+      : stremioCall('/api/login', { type: 'Auth', email: creds.email, password: creds.password })
+          .then(function (r) { return r && r.authKey; });
+
+    return start.then(function (key) {
+      if (!key) { throw new Error('No auth key was returned.'); }
+      session = { kind: 'stremio', authKey: key };
+      say('Reading your record…');
+      return Promise.all([
+        stremioCall('/api/getUser', { type: 'GetUser', authKey: key }),
+        stremioCall('/api/datastoreGet', { type: 'DatastoreGet', authKey: key, collection: 'libraryItem', all: true })
+      ]);
+    }).then(function (both) {
+      var user = both[0] || {}, items = both[1];
+      if (!Array.isArray(items)) { items = (items && items.library) || []; }
+      realEmail = user.email || '';
+
+      var account = [
+        ['Email', maskEmail(realEmail)],
+        ['Account id', user._id || 'unknown'],
+        ['Registered', user.dateRegistered ? fmtFull.format(new Date(user.dateRegistered)) : 'not set'],
+        ['Last changed', user.lastModified ? fmtFull.format(new Date(user.lastModified)) : 'not set']
+      ];
+      if (user.trakt && (user.trakt.access_token || user.trakt.created_at)) {
+        account.push(['Trakt', 'linked, token held by Stremio']);
+      }
+      if (user.fbId) { account.push(['Facebook', 'linked']); }
+      if (user.gdpr_consent) {
+        var c = user.gdpr_consent;
+        var flags = ['privacy', 'tos', 'marketing'].filter(function (k) {
+          return Object.prototype.hasOwnProperty.call(c, k);
+        }).map(function (k) { return k + ': ' + (c[k] ? 'yes' : 'no'); });
+        if (c.from) { flags.push('captured in ' + c.from); }
+        account.push(['Consent recorded', flags.join(', ') || 'none']);
+      }
+      // Stremio calls this tier "Supporter" to users; the API kept the older
+      // `premium_*` field names. And premium_expire uses a far-future sentinel
+      // rather than a null when there is no end date, so rendering it as a date
+      // reads as a bug.
+      if (user.premium_expire) {
+        var exp = new Date(user.premium_expire);
+        var far = exp.getFullYear() >= 2099;
+        account.push(['Stremio Supporter',
+          exp < new Date() ? 'lapsed ' + fmtFull.format(exp)
+          : far ? 'active, with no expiry date set'
+          : 'active until ' + fmtFull.format(exp)]);
+      }
+
+      var prof = user.premiumPrefs && user.premiumPrefs.userProfiles;
+      var profiles = prof ? Object.keys(prof).map(function (k) {
+        var p = prof[k] || {};
+        return { name: p.name || 'Unnamed profile',
+                 detail: p.hasPin ? 'PIN set' : 'no PIN',
+                 avatar: user.avatar || '' };
+      }) : [];
+
+      return { provider: 'Stremio', handle: handleFrom(user),
+               account: account, rows: items.map(stremioRow),
+               extras: { withheld: [], profiles: profiles } };
+    });
+  }
+
+  // A row is a row, not a title: Stremio writes one the moment you open a
+  // detail page, and keeps it after you remove the item from your library.
+  // season/episode live in video_id ("tt0903747:1:5"); state.season is 0 on
+  // real accounts.
+  function stremioRow(item) {
+    var st = item.state || {};
+    var id = String(item._id || '').split(':')[0];
+    var se = null, ep = null, vid = st.video_id;
+    if (item.type === 'series' && typeof vid === 'string') {
+      var b = vid.split(':');
+      if (b.length >= 3) {
+        var a1 = parseInt(b[1], 10), a2 = parseInt(b[2], 10);
+        if (a1 > 0 || a2 > 0) { se = a1; ep = a2; }
+      }
+    }
+    var watched = st.overallTimeWatched > 0 ? st.overallTimeWatched
+                : st.timeWatched > 0 ? st.timeWatched
+                : (st.duration > 0 && st.timeOffset > 0 ? Math.min(st.timeOffset, st.duration) : 0);
+    var played = watched > 0 || st.timeOffset > 0 || st.flaggedWatched > 0 || st.timesWatched > 0;
+    return {
+      key: id + ':' + (se || 0) + ':' + (ep || 0),
+      // Accounts carry more than movies and series: `tv` and `events` rows show
+      // up too, and mapping them to "movie" would send Cinemeta and the detail
+      // links somewhere that does not exist.
+      id: id, videoId: vid || id, type: item.type || 'movie',
+      name: item.name || id, season: se, episode: ep,
+      positionMs: st.timeOffset || 0, durationMs: st.duration || 0, watchedMs: watched,
+      last: toDate(st.lastWatched || item._mtime || item._ctime), created: toDate(item._ctime),
+      plays: st.timesWatched || 0, finished: st.flaggedWatched > 0,
+      // This is a log, not a library. stremio-core writes a row with
+      // removed:true, temp:true the moment you open or play something, then
+      // derives two views from the log. Both predicates are lifted verbatim:
+      // in_library  = !removed && !temp
+      // continue_watching = type != "other" && (!removed || temp) && time_offset > 0
+      rawId: item._id,
+      inLibrary: !item.removed && !item.temp,
+      inContinue: item.type !== 'other' && (!item.removed || item.temp) && st.timeOffset > 0,
+      shelf: !item.removed ? 'library' : (item.temp ? 'never-added' : 'taken-out'),
+      played: played,
+      poster: item.poster || '', background: item.background || '', genres: [], addonHost: '',
+      year: item.year || ''
+    };
+  }
+
+  // ---- Nuvio adapter ----------------------------------------------------
+  function discover(base) {
+    return fetch(base.replace(/\/+$/, '') + '/.well-known/nuvio')
+      .then(function (r) {
+        if (!r.ok) { throw new Error('That URL did not answer /.well-known/nuvio.'); }
+        return r.json();
+      })
+      .then(function (j) {
+        if (!j || !j.publishable_key) { throw new Error('That backend did not publish a key.'); }
+        return { base: (j.backend_url || base).replace(/\/+$/, ''), key: j.publishable_key };
+      });
+  }
+
+  function rpc(cfg, fn, args) {
+    return fetch(cfg.base + '/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json', 'Accept': 'application/json',
+        'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.token
+      },
+      body: JSON.stringify(args || {})
+    }).then(function (r) {
+      return r.json().catch(function () { return null; }).then(function (j) {
+        if (!r.ok) {
+          throw new Error((j && (j.message || j.error_description)) || (fn + ' failed (' + r.status + ')'));
+        }
+        return j;
+      });
+    });
+  }
+
+  function readNuvio(creds, rawBase) {
+    var resolve = backendId === 'custom'
+      ? discover(rawBase)
+      : Promise.resolve({ base: backend.base, key: backend.key });
+
+    var cfg;
+    return resolve.then(function (c) {
+      cfg = c;
+      say('Signing in to ' + hostOf(cfg.base) + '…');
+      return fetch(cfg.base + '/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': cfg.key },
+        body: JSON.stringify({ email: creds.email, password: creds.password })
+      }).then(function (r) {
+        return r.json().catch(function () { return null; }).then(function (j) {
+          if (!r.ok || !j || !j.access_token) {
+            throw new Error((j && (j.error_description || j.msg || j.message)) || 'Sign-in failed.');
+          }
+          return j;
+        });
+      });
+    }).then(function (auth) {
+      cfg.token = auth.access_token;
+      session = { kind: 'nuvio', cfg: cfg };
+      var user = auth.user || {};
+      realEmail = user.email || creds.email || '';
+      say('Reading your record…');
+      // The membership functions exist on Nuvio's own backend but are absent
+      // from the published self-host schema, so a self-hosted backend answers
+      // 404 and the section simply does not render.
+      return Promise.all([
+        rpc(cfg, 'sync_export_account_backup', {}),
+        rpc(cfg, 'sync_pull_profile_locks', {}).catch(function () { return null; }),
+        rpc(cfg, 'get_my_membership_overview', {}).catch(function () {
+          return rpc(cfg, 'get_my_member_access', {}).catch(function () { return null; });
+        })
+      ]).then(function (parts) {
+        return { user: user, backup: parts[0], locks: parts[1], member: parts[2] };
+      });
+    }).then(function (got) { return buildNuvio(got, cfg); });
+  }
+
+  // Shared by a fresh sign-in and a restored session, which differ only in
+  // whether an auth response was seen this time round.
+  function buildNuvio(got, cfg) {
+    exportDoc = got.backup || null;
+    realEmail = (got.user && got.user.email) || realEmail || '';
+    var rows = nuvioRows(got.backup);
+    var m = got.member;
+    if (Array.isArray(m)) { m = m[0]; }
+    var tier = m && (m.membership_level || m.tier || m.level || m.access_level);
+    var account = [
+      ['Email', maskEmail(realEmail)],
+      ['Account id', got.user.id || 'unknown'],
+      ['Registered', got.user.created_at ? fmtFull.format(new Date(got.user.created_at)) : 'not set'],
+      ['Last sign-in', got.user.last_sign_in_at ? fmtFull.format(new Date(got.user.last_sign_in_at)) : 'not set'],
+      ['Backend', hostOf(cfg.base)]
+    ];
+    if (tier) {
+      account.push(['Supporter tier', String(tier).toLowerCase().replace(/_/g, ' ') +
+        (m.supporter_since ? ', since ' + fmtFull.format(new Date(m.supporter_since)) : '')]);
+    }
+    return {
+      provider: backendId === 'custom' ? 'your backend' : 'Nuvio',
+      providerHost: hostOf(cfg.base),
+      handle: handleFrom(got.user),
+      account: account, rows: rows,
+      extras: {
+        profiles: nuvioProfiles(got.backup, got.locks),
+        publicly: tier ? [
+          'Supporting ' + (backendId === 'custom' ? 'the upstream service' : 'Nuvio') +
+          ' is handled through Patreon, and supporters appear on a wall that any client ' +
+          'can read without signing in: display name, Patreon avatar and the date you ' +
+          'started. It is meant as a thank-you page. It also ties this account to a ' +
+          'public identity.'
+        ] : [],
+        withheld: [
+          'Your debrid and metadata provider keys, which the apps pull down to configure themselves',
+          'Tracker tokens, such as a linked Trakt account',
+          'Profile PIN hashes and their lockout state',
+          'Your signed-in devices and active sessions'
+        ]
+      }
+    };
+  }
+
+  // The backup envelope is a JSON document rather than a fixed API, and it
+  // differs between backend versions, so the tables are found by the columns
+  // they carry instead of by where they sit in the object.
+  function collect(doc, test) {
+    var found = [];
+    (function walk(node, depth) {
+      if (!node || depth > 6) { return; }
+      if (Array.isArray(node)) {
+        if (node.length && typeof node[0] === 'object' && node[0] && test(node[0])) {
+          found = found.concat(node);
+          return;
+        }
+        node.forEach(function (c) { walk(c, depth + 1); });
+        return;
+      }
+      if (typeof node === 'object') {
+        Object.keys(node).forEach(function (k) { walk(node[k], depth + 1); });
+      }
+    })(doc, 0);
+    return found;
+  }
+  function has(o) {
+    var keys = Array.prototype.slice.call(arguments, 1);
+    return keys.every(function (k) { return Object.prototype.hasOwnProperty.call(o, k); });
+  }
+  // `position` and `duration` are stored in seconds; older rows and some
+  // backends write milliseconds. Anything past a couple of days can only be ms.
+  function toMs(v) {
+    var x = Number(v || 0);
+    if (!isFinite(x) || x <= 0) { return 0; }
+    return x > 200000 ? x : x * 1000;
+  }
+
+  function nuvioRows(backup) {
+    var progress = collect(backup, function (o) { return has(o, 'content_id') && (has(o, 'position') || has(o, 'last_watched')); });
+    var library  = collect(backup, function (o) { return has(o, 'content_id') && has(o, 'name'); });
+    var watched  = collect(backup, function (o) { return has(o, 'content_id') && has(o, 'watched_at'); });
+
+    var byKey = {}, inLibrary = {};
+    var keyOf = function (o) {
+      return String(o.content_id) + ':' + (Number(o.season) || 0) + ':' + (Number(o.episode) || 0);
+    };
+
+    library.forEach(function (l) {
+      inLibrary[String(l.content_id)] = l;
+    });
+
+    progress.forEach(function (p) {
+      var lib = inLibrary[String(p.content_id)] || {};
+      var pos = toMs(p.position), dur = toMs(p.duration);
+      byKey[keyOf(p)] = {
+        key: keyOf(p), id: String(p.content_id), videoId: p.video_id || String(p.content_id),
+        type: (p.content_type === 'series' || Number(p.season) > 0) ? 'series' : 'movie',
+        name: lib.name || p.title || String(p.content_id),
+        season: Number(p.season) || null, episode: Number(p.episode) || null,
+        positionMs: pos, durationMs: dur, watchedMs: Math.min(pos, dur || pos),
+        last: toDate(p.last_watched), created: toDate(lib.added_at || lib.created_at),
+        plays: 0, finished: dur > 0 && pos / dur >= 0.9,
+        shelf: inLibrary[String(p.content_id)] ? 'library' : 'not-in-library',
+        inLibrary: !!inLibrary[String(p.content_id)], inContinue: pos > 0,
+        progressKey: p.progress_key || null, profileId: p.profile_id || null,
+        played: pos > 0,
+        poster: lib.poster || '', background: lib.background || '',
+        genres: Array.isArray(lib.genres) ? lib.genres : [],
+        addonHost: hostOf(lib.addon_base_url || ''), year: lib.release_info || ''
+      };
+    });
+
+    watched.forEach(function (w) {
+      var k = keyOf(w), row = byKey[k];
+      var when = toDate(w.watched_at);
+      if (!row) {
+        var lib2 = inLibrary[String(w.content_id)] || {};
+        row = byKey[k] = {
+          key: k, id: String(w.content_id), videoId: String(w.content_id),
+          type: (w.content_type === 'series' || Number(w.season) > 0) ? 'series' : 'movie',
+          name: w.title || lib2.name || String(w.content_id),
+          season: Number(w.season) || null, episode: Number(w.episode) || null,
+          positionMs: 0, durationMs: 0, watchedMs: 0,
+          last: when, created: toDate(lib2.added_at), plays: 0, finished: true,
+          shelf: inLibrary[String(w.content_id)] ? 'library' : 'not-in-library',
+          inLibrary: !!inLibrary[String(w.content_id)], inContinue: false,
+          played: true,
+          poster: lib2.poster || '', background: lib2.background || '',
+          genres: Array.isArray(lib2.genres) ? lib2.genres : [],
+          addonHost: hostOf(lib2.addon_base_url || '')
+        };
+      }
+      row.plays++;
+      row.finished = true;
+      row.played = true;
+      if (when && (!row.last || when > row.last)) { row.last = when; }
+    });
+
+    library.forEach(function (l) {
+      var k = String(l.content_id) + ':0:0';
+      if (byKey[k]) { return; }
+      var anyEpisode = Object.keys(byKey).some(function (x) { return x.indexOf(String(l.content_id) + ':') === 0; });
+      if (anyEpisode) { return; }
+      byKey[k] = {
+        key: k, id: String(l.content_id), videoId: String(l.content_id),
+        type: l.content_type === 'series' ? 'series' : 'movie',
+        name: l.name || String(l.content_id), season: null, episode: null,
+        positionMs: 0, durationMs: 0, watchedMs: 0,
+        last: toDate(l.updated_at || l.added_at), created: toDate(l.added_at || l.created_at),
+        plays: 0, finished: false, shelf: 'library',
+        inLibrary: true, inContinue: false, played: false,
+        poster: l.poster || '', background: l.background || '',
+        genres: Array.isArray(l.genres) ? l.genres : [],
+        addonHost: hostOf(l.addon_base_url || '')
+      };
+    });
+
+    return Object.keys(byKey).map(function (k) { return byKey[k]; });
+  }
+
+  function nuvioProfiles(backup, locks) {
+    var rows = collect(backup, function (o) {
+      return has(o, 'name') && (has(o, 'profile_index') || has(o, 'pin_enabled') || has(o, 'avatar_id'));
+    });
+    var lockRows = Array.isArray(locks) ? locks : [];
+    var lockFor = {};
+    lockRows.forEach(function (l) { lockFor[String(l.profile_id != null ? l.profile_id : l.id)] = l; });
+    return rows.map(function (p) {
+      var l = lockFor[String(p.profile_id != null ? p.profile_id : p.id)] || {};
+      var pinned = p.pin_enabled || l.pin_enabled;
+      return {
+        name: p.name || 'Unnamed profile',
+        avatar: p.avatar_url || '',
+        colour: p.avatar_color_hex || '',
+        detail: [pinned ? 'PIN set' : 'no PIN',
+                 p.created_at ? 'added ' + fmtFull.format(new Date(p.created_at)) : ''
+                ].filter(Boolean).join(' · ')
+      };
+    });
+  }
+
+  // The export is the account's own copy of itself, and it carries two things
+  // datastoreGet does not: the notification map (which series it is tracking
+  // unwatched episodes for) and a per-row server document id stamped with the
+  // owner. Best effort — everything still works without it.
+  var exportDoc = null;
+  function loadExport(authKey) {
+    return stremioCall('/api/dataExport', { type: 'DataExport', authKey: authKey })
+      .then(function (r) {
+        var id = r && (r.exportId || r.export_id);
+        if (!id) { return null; }
+        return fetch('https://api.strem.io/data-export/' + encodeURIComponent(id) + '/export.json')
+          .then(function (x) { return x.ok ? x.json() : null; })
+          .then(function (doc) { exportDoc = doc; return doc; });
+      })
+      .catch(function () { return null; });
+  }
+
+  // `nim` is keyed "<seriesId> <season> <episode>", one entry per episode the
+  // account has been told about and has not watched.
+  function parseFollows(doc) {
+    var nim = doc && doc.nim;
+    if (!nim || typeof nim !== 'object') { return []; }
+    var bySeries = {};
+    Object.keys(nim).forEach(function (k) {
+      var bits = String(k).split(/\s+/);
+      if (!bits[0]) { return; }
+      if (!bySeries[bits[0]]) { bySeries[bits[0]] = { id: bits[0], episodes: [] }; }
+      bySeries[bits[0]].episodes.push(
+        bits.length >= 3 ? 'S' + String(bits[1]).padStart(2, '0') + 'E' + String(bits[2]).padStart(2, '0') : k);
+    });
+    return Object.keys(bySeries).map(function (k) { return bySeries[k]; })
+      .sort(function (a, b) { return b.episodes.length - a.episodes.length; });
+  }
+
+  // ---- metadata ---------------------------------------------------------
+  // Cinemeta is Stremio's own catalogue, which the visitor's app already calls
+  // from this device, so nothing new learns anything here. One request per
+  // title, pooled so we never open more than a few at once.
+  function loadMeta(rows, onProgress) {
+    var seen = {}, jobs = [];
+    rows.forEach(function (r) {
+      // Stremio's own rows already carry name, poster, background and year, so
+      // the only thing Cinemeta adds is genres. Cinemeta only serves movie and
+      // series, so live-TV and event rows are skipped rather than 404'd, and
+      // there is no point asking about something that was never played.
+      if (!/^tt\d+$/.test(r.id) || seen[r.id]) { return; }
+      if (r.type !== 'movie' && r.type !== 'series') { return; }
+      if (!r.played) { return; }
+      if (r.poster && r.genres.length) { return; }
+      seen[r.id] = 1;
+      jobs.push({ id: r.id, kind: r.type });
+    });
+    var done = 0, cursor = 0, POOL = 6;
+    if (!jobs.length) { return Promise.resolve(); }
+    function next() {
+      if (cursor >= jobs.length) { return Promise.resolve(); }
+      var job = jobs[cursor++];
+      return fetch(CINEMETA + '/meta/' + job.kind + '/' + encodeURIComponent(job.id) + '.json')
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) { if (j && j.meta) { metaById[job.id] = j.meta; } })
+        .catch(function () {})
+        .then(function () { onProgress(++done, jobs.length); return next(); });
+    }
+    var pool = [];
+    for (var k = 0; k < Math.min(POOL, jobs.length); k++) { pool.push(next()); }
+    return Promise.all(pool);
+  }
+  function meta(row) { return metaById[row.id] || {}; }
+  // "2008–2013" and "181 min" are the shapes these actually arrive in.
+  function yearOf(row) {
+    var m = String(row.year || meta(row).year || meta(row).releaseInfo || '').match(/\d{4}/);
+    return m ? Number(m[0]) : null;
+  }
+  function runtimeMin(row) {
+    var m = String(meta(row).runtime || '').match(/(\d+)/);
+    return m ? Number(m[1]) : null;
+  }
+  function ratingOf(row) {
+    var r = parseFloat(meta(row).imdbRating);
+    return isFinite(r) ? r : null;
+  }
+
+  // One counter per distinct title, so a 60-episode series is not 60 votes.
+  function countBy(rows, pick) {
+    var counts = {}, seen = {};
+    rows.filter(function (r) { return r.played; }).forEach(function (r) {
+      if (seen[r.id]) { return; }
+      seen[r.id] = 1;
+      (pick(r) || []).forEach(function (v) {
+        if (v) { counts[v] = (counts[v] || 0) + 1; }
+      });
+    });
+    return counts;
+  }
+  function renderDistribution(bar, chips, counts, limit, order, linkFor) {
+    var list = Object.keys(counts).map(function (k) { return { k: k, c: counts[k] }; });
+    list.sort(order || function (a, b) { return b.c - a.c; });
+    list = list.slice(0, limit);
+    var sum = list.reduce(function (a, r) { return a + r.c; }, 0);
+    if (bar) { bar.textContent = ''; }
+    chips.textContent = '';
+    list.forEach(function (r, idx) {
+      var col = GCOL[idx % GCOL.length];
+      if (bar) {
+        var i = document.createElement('i');
+        i.style.width = (r.c / sum * 100) + '%';
+        i.style.background = col;
+        i.title = r.k;
+        bar.appendChild(i);
+      }
+      var href = linkFor ? linkFor(r.k) : '';
+      var li = document.createElement('li');
+      var chip = href ? document.createElement('a') : li;
+      if (href) {
+        chip.href = href; chip.target = '_blank'; chip.rel = 'noopener noreferrer';
+        chip.title = 'Search Stremio for ' + r.k;
+        li.appendChild(chip);
+      }
+      chip.className = 'chip';
+      chip.style.background = col + '22';
+      chip.style.color = col;
+      chip.textContent = r.k + ' · ' + r.c;
+      chips.appendChild(li);
+    });
+    return sum;
+  }
+  function poster(row) { return row.poster || meta(row).poster || ''; }
+  function genresOf(row) { return row.genres.length ? row.genres : (meta(row).genres || []); }
+  function displayName(row) {
+    var base = row.name && row.name !== row.id ? row.name : (meta(row).name || row.id);
+    return row.season != null && row.episode != null
+      ? base + ' S' + String(row.season).padStart(2, '0') + 'E' + String(row.episode).padStart(2, '0')
+      : base;
+  }
+  function position(row) {
+    // Finished rows can still carry a stray offset of a few hundred ms, which
+    // renders as a baffling "0:00 / 47:22" unless finished is checked first.
+    if (row.durationMs > 0 && row.positionMs / row.durationMs >= 0.9) { return 'finished'; }
+    if (row.finished) { return 'marked watched'; }
+    if (row.positionMs > 0) {
+      return clockStr(row.positionMs) + (row.durationMs > 0 ? ' / ' + clockStr(row.durationMs) : '');
+    }
+    if (row.plays > 0) { return 'watched'; }
+    return 'never played';
+  }
+  // The bar follows the saved position, not the watched flag. On a real account
+  // flaggedWatched is set on rows sitting anywhere from 0.3% to the end, so it
+  // says "someone marked this watched", not "playback reached the end".
+  function progressPct(row) {
+    if (!(row.durationMs > 0) || !(row.positionMs > 0)) { return null; }
+    var p = row.positionMs / row.durationMs;
+    return p < 0.9 ? Math.max(0.01, p) : null;
+  }
+
+  // Cinemeta's own meta objects link a cast or director name to
+  // `stremio:///search?search=<name>`. That deep link only resolves if the
+  // native app is installed, so the web route is used instead, matching the
+  // timeline links. Other backends get an IMDb name search, since sending a
+  // Nuvio user into Stremio would be odd.
+  // A name with no artwork gets its initials on a colour derived from the name,
+  // which at least distinguishes one profile from another.
+  // Stremio leaves `fullname` blank on most accounts, so the only handle
+  // available is usually the local part of the email. That is identifying, and
+  // it is the one place on the page where the masking elsewhere is undone.
+  function handleFrom(user) {
+    var named = user && (user.fullname || user.name ||
+      (user.user_metadata && (user.user_metadata.display_name || user.user_metadata.full_name)));
+    if (named) { return String(named).trim(); }
+    return realEmail && realEmail.indexOf('@') > 0 ? realEmail.split('@')[0] : '';
+  }
+  function possessive(name) {
+    return name + (/s$/i.test(name) ? '\u2019' : '\u2019s');
+  }
+
+  function initials(name) {
+    return String(name || '?').trim().split(/\s+/).slice(0, 2)
+      .map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
+  }
+  function colourFor(name) {
+    var h = 0;
+    String(name || '').split('').forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; });
+    return GCOL[h % GCOL.length];
+  }
+  function avatarNode(opts) {
+    if (opts.image) {
+      var img = document.createElement('img');
+      img.className = opts.poster ? 'art' : 'av';
+      img.src = opts.image; img.alt = ''; img.loading = 'lazy';
+      img.referrerPolicy = 'no-referrer';
+      return img;
+    }
+    var el = document.createElement('span');
+    el.className = 'av';
+    el.textContent = initials(opts.name);
+    if (opts.colour) {
+      el.style.background = opts.colour;
+    } else {
+      var c = colourFor(opts.name);
+      el.style.background = 'linear-gradient(135deg,' + c + ',' + c + '99)';
+    }
+    return el;
+  }
+
+  function personUrl(name) {
+    if (!name) { return ''; }
+    return backendId === 'stremio'
+      ? 'https://web.stremio.com/#/search?search=' + encodeURIComponent(name)
+      : 'https://www.imdb.com/find/?s=nm&q=' + encodeURIComponent(name);
+  }
+
+  function detailUrl(row) {
+    if (backendId === 'stremio') {
+      return STREMIO_WEB + '/' + row.type + '/' + encodeURIComponent(row.id) + '/' +
+             encodeURIComponent(row.videoId || row.id);
+    }
+    return /^tt\d+$/.test(row.id) ? 'https://www.imdb.com/title/' + row.id + '/' : '';
+  }
+  function inRange(row) {
+    if (yearFilter === 'all') { return true; }
+    if (!row.last || row.last.getFullYear() !== Number(yearFilter)) { return false; }
+    return monthFilter === 'all' || row.last.getMonth() === Number(monthFilter);
+  }
+
+  // ---- animation --------------------------------------------------------
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function countUp(el, to) {
+    if (reduced || to < 2) { el.textContent = n(to); return; }
+    var t0 = performance.now(), dur = 900;
+    (function step(t) {
+      var p = Math.min(1, (t - t0) / dur);
+      el.textContent = n(Math.round(to * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) { requestAnimationFrame(step); }
+    })(t0);
+  }
+  function observeReveals() {
+    var els = document.querySelectorAll('.reveal');
+    if (reduced || !('IntersectionObserver' in window)) {
+      Array.prototype.forEach.call(els, function (e) { e.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    Array.prototype.forEach.call(els, function (e) { io.observe(e); });
+  }
+
+  // ---- tally ------------------------------------------------------------
+  function tally(rows) {
+    var t = { total: rows.length, inLibrary: 0, neverAdded: 0, takenOut: 0, offShelf: 0,
+              played: 0, openedOnly: 0, ms: 0, oldest: null, rewatched: 0,
+              abandoned: 0, finished: 0,
+              viewLibrary: 0, viewContinue: 0, viewNowhere: 0 };
+    rows.forEach(function (r) {
+      if (r.shelf === 'library') { t.inLibrary++; } else { t.offShelf++; }
+      if (r.shelf === 'never-added') { t.neverAdded++; }
+      if (r.shelf === 'taken-out') { t.takenOut++; }
+      if (r.inLibrary) { t.viewLibrary++; }
+      if (r.inContinue) { t.viewContinue++; }
+      if (!r.inLibrary && !r.inContinue) { t.viewNowhere++; }
+      if (r.played) { t.played++; } else { t.openedOnly++; }
+      if (r.plays > 1) { t.rewatched++; }
+      if (r.finished) { t.finished++; }
+      if (r.durationMs > 0 && r.positionMs > 0 && !r.finished) {
+        var p = r.positionMs / r.durationMs;
+        if (p > 0.05 && p < 0.85) { t.abandoned++; }
+      }
+      t.ms += r.watchedMs;
+      var c = r.created || r.last;
+      if (c && (!t.oldest || c < t.oldest)) { t.oldest = c; }
+    });
+    var seen = {}, ratings = [], runtimes = [];
+    rows.forEach(function (r) {
+      if (!r.played || seen[r.id]) { return; }
+      seen[r.id] = 1;
+      var rt = ratingOf(r); if (rt) { ratings.push(rt); }
+      var rm = runtimeMin(r); if (rm) { runtimes.push(rm); }
+    });
+    var avg = function (a) {
+      return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : 0;
+    };
+    t.avgRating = ratings.length ? Math.round(avg(ratings) * 10) / 10 : 0;
+    t.avgRuntime = runtimes.length ? Math.round(avg(runtimes)) : 0;
+    return t;
+  }
+
+  // ---- render -----------------------------------------------------------
+  var provider = 'Stremio', providerHost = '', handle = '', shownBackendId = null;
+  // "your backend" is a fine mid-sentence label and a poor start to one.
+  function Provider() { return provider.charAt(0).toUpperCase() + provider.slice(1); }
+
+  // The backdrop cycles through the period's most-watched titles, so changing
+  // year or month visibly changes what is behind the number.
+  var heroArts = [], heroIdx = 0, heroLayer = 0, heroTimer = null;
+
+  function setHeroArt(list) {
+    if (heroTimer) { clearInterval(heroTimer); heroTimer = null; }
+    var a = $('heroart'), b = $('heroart2');
+    var seen = {};
+    heroArts = list.filter(function (u) {
+      if (!u || seen[u]) { return false; }
+      seen[u] = 1;
+      return true;
+    }).slice(0, 10);
+    a.classList.remove('on'); b.classList.remove('on');
+    if (!heroArts.length) { return; }
+    a.style.backgroundImage = 'url("' + heroArts[0] + '")';
+    a.classList.add('on');
+    heroIdx = 0; heroLayer = 0;
+    if (reduced || heroArts.length < 2) { return; }
+    // Warm the cache so a swap does not fade in on an empty layer.
+    heroArts.slice(1).forEach(function (u) { var i = new Image(); i.src = u; });
+    heroTimer = setInterval(function () {
+      heroIdx = (heroIdx + 1) % heroArts.length;
+      var next = heroLayer === 0 ? b : a;
+      var cur = heroLayer === 0 ? a : b;
+      next.style.backgroundImage = 'url("' + heroArts[heroIdx] + '")';
+      next.classList.add('on');
+      cur.classList.remove('on');
+      heroLayer = 1 - heroLayer;
+    }, 6000);
+  }
+
+  function renderHero(rows, t) {
+    setHeroArt(rows.filter(function (r) { return r.played; })
+      .sort(function (a, b) { return b.watchedMs - a.watchedMs; })
+      .map(function (r) { return r.background || meta(r).background; }));
+    $('heroperiod').textContent = yearFilter === 'all'
+      ? (t.oldest ? 'Since ' + fmtFull.format(t.oldest) : 'All time')
+      : (monthFilter === 'all'
+          ? String(yearFilter)
+          : new Intl.DateTimeFormat(LOC.locale, { month: 'long', year: 'numeric' })
+              .format(new Date(Number(yearFilter), Number(monthFilter), 1)));
+    var named = backendId !== 'custom';
+    $('herotitle').textContent = (handle ? possessive(handle) + ' ' : 'Your ') +
+      (named ? provider + ' ' : '') + 'RePlay';
+    countUp($('herofig'), t.total);
+    var cap = $('herocap');
+    cap.textContent = '';
+    var b = document.createElement('b');
+    b.textContent = 'Entries in your ' + (named ? provider + ' ' : '') + 'log';
+    cap.appendChild(b);
+    cap.appendChild(document.createTextNode(
+      t.oldest ? ', going back to ' + monthYear(t.oldest) + '.' : '.'));
+  }
+
+  function renderCards(t) {
+    var defs = [
+      ['tint1', Math.round(t.ms / 3600000), 'hours of playback logged', '\u23F3'],
+      ['tint2', t.played, 'titles you actually played', '\u25B6\uFE0F'],
+      ['tint3', t.viewNowhere || t.offShelf,
+        t.viewNowhere ? 'not listed anywhere, still stored'
+                      : 'not in your library, still stored', '\u{1F47B}'],
+      ['tint4', t.openedOnly, 'opened, never played', '\u{1F440}']
+    ];
+    if (t.takenOut) {
+      defs.push(['tint5', t.takenOut, 'you added, then removed', '\u{1F5D1}\uFE0F']);
+    }
+    if (t.avgRating) {
+      defs.push(['tint2', t.avgRating, 'average IMDb score of what you watch', '\u2B50']);
+    }
+    if (t.avgRuntime) {
+      defs.push(['tint5', t.avgRuntime, 'minutes, the average length you pick', '\u{1F4CF}']);
+    }
+    var host = $('cards');
+    host.textContent = '';
+    defs.filter(function (d) { return d[1]; }).forEach(function (d, idx) {
+      var c = document.createElement('div');
+      c.className = 'card ' + d[0] + ' reveal';
+      c.style.animationDelay = (idx * 70) + 'ms';
+      var row = document.createElement('div'); row.className = 'numrow';
+      var em = document.createElement('span'); em.className = 'em'; em.textContent = d[3] || '';
+      var num = document.createElement('span'); num.className = 'n'; num.textContent = '0';
+      var k = document.createElement('span'); k.className = 'k'; k.textContent = d[2];
+      row.appendChild(em); row.appendChild(num);
+      c.appendChild(row); c.appendChild(k); host.appendChild(c);
+      if (typeof d[1] === 'number' && d[1] % 1) { num.textContent = d[1].toFixed(1); }
+      else { countUp(num, d[1]); }
+    });
+  }
+
+  // One dry wink each rather than a costume party. Everything here is derived
+  // from the record, so a thin account simply earns fewer of them.
+  var GENRE_BADGE = {
+    'Fantasy':     ['\u{1F9DD}', 'Friend of the elves'],
+    'Animation':   ['\u{1F3A8}', 'Young at heart'],
+    'Documentary': ['\u{1F4DC}', 'Loremaster'],
+    'Horror':      ['\u{1F56F}', 'Walks in shadow'],
+    'Comedy':      ['\u{1F344}', 'Merry'],
+    'Drama':       ['\u{1F3AD}', 'Takes it seriously'],
+    'Adventure':   ['\u{1F5FA}', 'There and back again'],
+    'Action':      ['\u2694',    'Swings first'],
+    'Sci-Fi':      ['\u{1F6F8}', 'Beyond the stars'],
+    'Crime':       ['\u{1F50D}', 'Follows the trail'],
+    'Family':      ['\u{1F3E1}', 'Keeps it wholesome'],
+    'Thriller':    ['\u{1F300}', 'Likes the tension'],
+    'Mystery':     ['\u{1F5DD}', 'Solves it early'],
+    'Romance':     ['\u{1F338}', 'Soft-hearted']
+  };
+
+  function renderBadges(t, c, rows) {
+    var out = [], dated = c.dated || 0;
+
+    if (dated >= 20) {
+      var late = c.buckets.slice(0, 5).reduce(function (a, b) { return a + b; }, 0);
+      if (late / dated > 0.2) { out.push(['\u{1F319}', 'Watches by moonlight', Math.round(late / dated * 100) + '% after midnight']); }
+      var early = c.buckets.slice(5, 9).reduce(function (a, b) { return a + b; }, 0);
+      if (early / dated > 0.25) { out.push(['\u{1F305}', 'Up with the lark', Math.round(early / dated * 100) + '% before 9am']); }
+      var wk = c.weekday + c.weekend;
+      if (wk >= 20 && c.weekend / wk > 0.4) { out.push(['\u{1F6CB}', 'Weekender', Math.round(c.weekend / wk * 100) + '% at weekends']); }
+    }
+
+    var gcounts = countBy(rows, genresOf);
+    var gnames = Object.keys(gcounts).sort(function (a, b) { return gcounts[b] - gcounts[a]; });
+    if (gnames.length && GENRE_BADGE[gnames[0]]) {
+      out.push([GENRE_BADGE[gnames[0]][0], GENRE_BADGE[gnames[0]][1],
+                gnames[0] + ' leads, ' + n(gcounts[gnames[0]]) + ' titles']);
+    }
+    if (gnames.length >= 12) { out.push(['\u{1F9ED}', 'Wide-ranging', n(gnames.length) + ' genres in your record']); }
+    else if (gnames.length && gnames.length <= 4) { out.push(['\u{1F3AF}', 'Single-minded', 'Only ' + n(gnames.length) + ' genres show up']); }
+
+    var years = rows.filter(function (r) { return r.played; }).map(yearOf).filter(Boolean);
+    if (years.length >= 15) {
+      var avg = Math.round(years.reduce(function (a, b) { return a + b; }, 0) / years.length);
+      if (avg < 2005) { out.push(['\u{1F4FD}', 'Of the elder days', 'Average release year ' + avg]); }
+      else if (avg >= 2019) { out.push(['\u2728', 'Of the fourth age', 'Average release year ' + avg]); }
+      var oldest = Math.min.apply(null, years);
+      if (oldest < 1960) { out.push(['\u{1F5DD}', 'Reads the old scrolls', 'Oldest title from ' + oldest]); }
+    }
+
+    var hrs = Math.round(t.ms / 3600000);
+    if (hrs >= 1000) { out.push(['\u23F3', 'Many long years', n(hrs) + ' hours logged']); }
+    else if (hrs >= 300) { out.push(['\u{1F525}', 'Keeps the hearth lit', n(hrs) + ' hours logged']); }
+
+    if (t.played >= 10 && t.finished / t.played > 0.7) { out.push(['\u{1F3C1}', 'Finishes the quest', 'You see things through']); }
+    if (t.played >= 10 && t.abandoned / t.played > 0.3) { out.push(['\u{1F6AA}', 'Leaves the fellowship', n(t.abandoned) + ' left unfinished']); }
+    if (t.rewatched >= 5) { out.push(['\u{1F501}', 'Second breakfast', n(t.rewatched) + ' watched more than once']); }
+    if (t.openedOnly >= 20 && t.openedOnly > t.played / 3) { out.push(['\u{1FA9F}', 'Browses the market', n(t.openedOnly) + ' opened, never played']); }
+    if (t.takenOut >= 10) { out.push(['\u{1F5C4}', 'Tidy, in theory', n(t.takenOut) + ' removed, still held']); }
+    if (t.neverAdded > t.inLibrary * 10 && t.neverAdded >= 50) { out.push(['\u{1F392}', 'Travels light', n(t.neverAdded) + ' watched without adding']); }
+    if (c.busiestDay >= 5) { out.push(['\u{1F97E}', 'The long march', c.busiestDay + ' titles in a single day']); }
+    if (!out.length) { out.push(['\u{1F331}', 'Early days', 'Not enough history to read a pattern']); }
+
+    var ul = $('badges');
+    ul.textContent = '';
+    out.slice(0, 9).forEach(function (b, idx) {
+      var li = document.createElement('li');
+      li.className = 'badge';
+      li.style.animationDelay = (idx * 60) + 'ms';
+      var em = document.createElement('span'); em.className = 'em'; em.textContent = b[0];
+      var wrap = document.createElement('div');
+      var name = document.createElement('b'); name.textContent = b[1];
+      var sub2 = document.createElement('span'); sub2.textContent = b[2];
+      wrap.appendChild(name); wrap.appendChild(sub2);
+      li.appendChild(em); li.appendChild(wrap); ul.appendChild(li);
+    });
+  }
+
+  function renderTop(rows) {
+    var byTitle = {};
+    rows.filter(function (r) { return r.played; }).forEach(function (r) {
+      if (!byTitle[r.id]) { byTitle[r.id] = { row: r, ms: 0, plays: 0 }; }
+      byTitle[r.id].ms += r.watchedMs;
+      byTitle[r.id].plays += r.plays || 1;
+    });
+    var top = Object.keys(byTitle).map(function (k) { return byTitle[k]; })
+      .sort(function (a, b) { return b.ms - a.ms || b.plays - a.plays; }).slice(0, 5);
+
+    var ol = $('top');
+    ol.textContent = '';
+    top.forEach(function (r, idx) {
+      var m = meta(r.row);
+      var li = document.createElement('li');
+      li.className = 'reveal';
+      li.style.animationDelay = (idx * 60) + 'ms';
+      var rank = document.createElement('span'); rank.className = 'rank'; rank.textContent = String(idx + 1);
+      li.appendChild(rank);
+      var art = poster(r.row);
+      if (art) {
+        var img = document.createElement('img');
+        img.className = 'art'; img.src = art; img.alt = ''; img.loading = 'lazy';
+        img.referrerPolicy = 'no-referrer';
+        li.appendChild(img);
+      }
+      var wrap = document.createElement('div'); wrap.className = 'meta';
+      var url = detailUrl(r.row);
+      var nm = document.createElement(url ? 'a' : 'span');
+      nm.className = 'nm';
+      if (url) { nm.href = url; nm.target = '_blank'; nm.rel = 'noopener noreferrer'; }
+      nm.textContent = r.row.name && r.row.name !== r.row.id ? r.row.name : (m.name || r.row.id);
+      var sm = document.createElement('span'); sm.className = 'sm';
+      sm.textContent = [m.releaseInfo || m.year, genresOf(r.row).slice(0, 2).join(', '),
+                        r.row.addonHost ? 'via ' + r.row.addonHost : '']
+        .filter(Boolean).join(' · ');
+      wrap.appendChild(nm); wrap.appendChild(sm);
+      var hrs = document.createElement('span'); hrs.className = 'hrs';
+      var h = r.ms / 3600000;
+      hrs.textContent = h >= 1 ? h.toFixed(1) + 'h' : (r.ms > 0 ? Math.round(r.ms / 60000) + 'm'
+                                                               : r.plays + '×');
+      li.appendChild(wrap); li.appendChild(hrs);
+      ol.appendChild(li);
+    });
+  }
+
+  var GCOL = ['#a3d45f', '#4fbf9e', '#e0b44a', '#7fa8d9', '#d98e4a', '#b98ee0', '#5fc9d4', '#c9d466'];
+
+  function renderGenres(rows) {
+    var counts = countBy(rows, genresOf);
+    var sum = renderDistribution($('gbar'), $('genres'), counts, 8);
+    $('genrenote').textContent = sum
+      ? 'Counted once per title. ' + Provider() +
+        ' does not store any of this. It is worked out from the titles in your record.'
+      : 'No genre data available for these titles.';
+  }
+
+  function renderDecades(rows) {
+    var counts = countBy(rows, function (r) {
+      var y = yearOf(r);
+      return y ? [String(Math.floor(y / 10) * 10) + 's'] : [];
+    });
+    var sum = renderDistribution($('decbar'), $('decades'), counts, 8, function (a, b) {
+      return a.k.localeCompare(b.k);
+    });
+    if (!sum) { $('decnote').textContent = 'No release years available.'; return; }
+    var years = rows.filter(function (r) { return r.played; }).map(yearOf).filter(Boolean);
+    var oldest = Math.min.apply(null, years), newest = Math.max.apply(null, years);
+    var mean = Math.round(years.reduce(function (a, b) { return a + b; }, 0) / years.length);
+    $('decnote').textContent = 'Oldest ' + oldest + ', newest ' + newest +
+      ', average year ' + mean + '. Release year is stored with the record, so nothing had to be looked up.';
+  }
+
+  function renderPeople(rows) {
+    var cast = countBy(rows, function (r) { return (meta(r).cast || []).slice(0, 4); });
+    var sum = renderDistribution(null, $('people'), cast, 12, null, personUrl);
+    var dirs = countBy(rows, function (r) { return meta(r).director || []; });
+    var top = Object.keys(dirs).map(function (k) { return { k: k, c: dirs[k] }; })
+      .sort(function (a, b) { return b.c - a.c; }).filter(function (d) { return d.c > 1; }).slice(0, 3);
+    var note = $('peoplenote');
+    note.textContent = '';
+    if (!sum) { note.textContent = 'No cast data available for these titles.'; return; }
+    if (top.length) {
+      note.appendChild(document.createTextNode('Directors you return to: '));
+      top.forEach(function (d, i) {
+        var a = document.createElement('a');
+        a.href = personUrl(d.k); a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.textContent = d.k + ' (' + d.c + ')';
+        note.appendChild(a);
+        note.appendChild(document.createTextNode(i < top.length - 1 ? ', ' : '. '));
+      });
+    }
+    note.appendChild(document.createTextNode(
+      'Every name links to a search in ' + (backendId === 'stremio' ? 'Stremio' : 'IMDb') +
+      '. Nobody stores this list. It comes out of the titles in your record.'));
+  }
+
+  function renderClock(rows) {
+    var buckets = new Array(24).fill(0), byDay = {};
+    var weekday = 0, weekend = 0, dated = 0;
+    rows.forEach(function (r) {
+      var d = r.last;
+      if (!d) { return; }
+      dated++;
+      buckets[d.getHours()]++;
+      var key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+      byDay[key] = (byDay[key] || 0) + 1;
+      if (d.getDay() === 0 || d.getDay() === 6) { weekend++; } else { weekday++; }
+    });
+    var busiestDay = Object.keys(byDay).reduce(function (m, k) { return Math.max(m, byDay[k]); }, 0);
+    var max = Math.max.apply(null, buckets) || 1;
+    var peak = buckets.indexOf(max);
+
+    var el = $('clock');
+    el.textContent = '';
+    buckets.forEach(function (count, hour) {
+      var b = document.createElement('i');
+      b.style.height = Math.max(2, Math.round((count / max) * 100)) + '%';
+      b.style.animationDelay = (hour * 22) + 'ms';
+      if (hour === peak && count > 0) { b.className = 'peak'; }
+      b.title = String(hour).padStart(2, '0') + ':00, ' + count + ' ' + plural(count, 'entry', 'entries');
+      el.appendChild(b);
+    });
+    $('clocknote').textContent = dated
+      ? 'Busiest hour: ' + String(peak).padStart(2, '0') + ':00, across ' + n(dated) +
+        ' timestamped ' + plural(dated, 'entry', 'entries') + ', shown in ' + LOC.timeZone + '.'
+      : 'No timestamps recorded.';
+    return { buckets: buckets, peak: peak, weekday: weekday, weekend: weekend,
+             dated: dated, busiestDay: busiestDay };
+  }
+
+  // The timeline is the exhibit: not a sample, the whole record in order.
+  function renderTimeline() {
+    var rows = allRows.filter(inRange).filter(function (r) { return r.last; });
+    if (timelineMode === 'played') { rows = rows.filter(function (r) { return r.played; }); }
+    rows.sort(function (a, b) { return b.last - a.last; });
+
+    var host = $('timeline');
+    host.textContent = '';
+    var frag = document.createDocumentFragment();
+    var year = null, month = null, list = null;
+
+    rows.forEach(function (row) {
+      var d = row.last;
+      if (d.getFullYear() !== year) {
+        year = d.getFullYear(); month = null;
+        var h = document.createElement('div');
+        h.className = 'tlyear'; h.textContent = String(year);
+        frag.appendChild(h);
+      }
+      if (d.getMonth() !== month) {
+        month = d.getMonth();
+        var sub = document.createElement('div');
+        sub.className = 'tlmonth'; sub.textContent = fmtMonth.format(d);
+        frag.appendChild(sub);
+        list = document.createElement('ol'); list.className = 'tl';
+        frag.appendChild(list);
+      }
+      var li = document.createElement('li');
+      if (!row.played) { li.className = 'unplayed'; }
+      var url = detailUrl(row);
+      var a = document.createElement(url ? 'a' : 'div');
+      if (url) {
+        a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        a.title = backendId === 'stremio' ? 'Open in Stremio' : 'Look up on IMDb';
+      }
+      var art = poster(row);
+      if (art) {
+        var img = document.createElement('img');
+        img.className = 'art'; img.src = art; img.alt = ''; img.loading = 'lazy';
+        img.referrerPolicy = 'no-referrer';
+        a.appendChild(img);
+      }
+      var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = displayName(row);
+      a.appendChild(nm);
+
+      var box = document.createElement('span'); box.className = 'meta';
+      var pct = progressPct(row);
+      if (pct !== null) {
+        var bar = document.createElement('span'); bar.className = 'bar';
+        var fill = document.createElement('i'); fill.style.width = (pct * 100) + '%';
+        bar.appendChild(fill);
+        bar.title = clockStr(row.positionMs) + ' of ' + clockStr(row.durationMs);
+        box.appendChild(bar);
+        var st2 = document.createElement('span'); st2.className = 'st';
+        st2.textContent = Math.round(pct * 100) + '%' + (row.finished ? ' · marked watched' : '');
+        box.appendChild(st2);
+      } else {
+        var lbl = document.createElement('span'); lbl.className = 'st';
+        lbl.textContent = position(row);
+        box.appendChild(lbl);
+      }
+      var day = document.createElement('span'); day.className = 'd'; day.textContent = fmtDay.format(d);
+      box.appendChild(day);
+      a.appendChild(box);
+      li.appendChild(a);
+
+      // Only where the backend can genuinely delete one entry. Stremio cannot,
+      // so it never gets a button that would imply otherwise.
+      if (backendId !== 'stremio' && row.progressKey) {
+        var scrub = document.createElement('button');
+        scrub.type = 'button';
+        scrub.className = 'scrub';
+        scrub.textContent = 'Scrub';
+        scrub.title = 'Delete this entry from your backend';
+        scrub.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          if (!scrub.classList.contains('armed')) {
+            scrub.classList.add('armed');
+            scrub.textContent = 'Delete?';
+            setTimeout(function () {
+              if (scrub.isConnected && scrub.classList.contains('armed')) {
+                scrub.classList.remove('armed');
+                scrub.textContent = 'Scrub';
+              }
+            }, 4000);
+            return;
+          }
+          scrub.disabled = true;
+          scrub.textContent = '\u2026';
+          rpc(session.cfg, 'sync_delete_watch_progress',
+              { p_keys: [row.progressKey], p_profile_id: row.profileId || 1 })
+            .then(function () {
+              allRows = allRows.filter(function (x) { return x !== row; });
+              paint();
+            })
+            .catch(function (err) {
+              scrub.disabled = false;
+              scrub.classList.remove('armed');
+              scrub.textContent = 'Scrub';
+              scrub.title = err.message || 'The backend refused the delete.';
+            });
+        });
+        li.appendChild(scrub);
+      }
+
+      list.appendChild(li);
+    });
+
+    host.appendChild(frag);
+    var scoped = allRows.filter(inRange);
+    var undated = scoped.length - scoped.filter(function (r) { return r.last; }).length;
+    $('timelinenote').textContent =
+      n(rows.length) + ' ' + plural(rows.length, 'entry', 'entries') +
+      (rows.length ? ', back to ' + fmtFull.format(rows[rows.length - 1].last) : '') +
+      (backendId !== 'stremio' && rows.some(function (r) { return r.progressKey; })
+        ? ' Hover any entry to scrub it on its own, which Stremio has no way to do.' : '') +
+      (rows.length && detailUrl(rows[0]) ? '. Each one links to its page.' : '.') +
+      (undated ? ' ' + n(undated) + ' further ' + plural(undated, 'entry carries', 'entries carry') +
+        ' no timestamp and is not shown.' : '');
+  }
+
+  function pillRow(host, options, current, onPick) {
+    host.textContent = '';
+    options.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-selected', String(o[0]) === String(current) ? 'true' : 'false');
+      b.textContent = o[1];
+      b.addEventListener('click', function () { onPick(String(o[0])); });
+      host.appendChild(b);
+    });
+  }
+
+  function renderYears() {
+    var years = {};
+    allRows.forEach(function (r) { if (r.last) { years[r.last.getFullYear()] = 1; } });
+    var list = Object.keys(years).sort(function (a, b) { return b - a; });
+    if (list.length < 2) { $('years').textContent = ''; $('months').hidden = true; return; }
+    pillRow($('years'),
+      [['all', 'All time']].concat(list.map(function (y) { return [y, y]; })),
+      yearFilter,
+      function (v) { yearFilter = v; monthFilter = 'all'; paint(); });
+    renderMonths();
+  }
+
+  // Only months that actually hold something, so a quiet year does not render
+  // eleven dead pills.
+  function renderMonths() {
+    var host = $('months');
+    if (yearFilter === 'all') { host.hidden = true; host.textContent = ''; return; }
+    var seen = {};
+    allRows.forEach(function (r) {
+      if (r.last && r.last.getFullYear() === Number(yearFilter)) { seen[r.last.getMonth()] = 1; }
+    });
+    var months = Object.keys(seen).map(Number).sort(function (a, b) { return a - b; });
+    if (!months.length) { host.hidden = true; host.textContent = ''; return; }
+    host.hidden = false;
+    var short = new Intl.DateTimeFormat(LOC.locale, { month: 'short' });
+    pillRow(host,
+      [['all', 'All year']].concat(months.map(function (m) {
+        return [m, short.format(new Date(Number(yearFilter), m, 1))];
+      })),
+      monthFilter,
+      function (v) { monthFilter = v; paint(); });
+  }
+
+  function renderAccount(pairs) {
+    var dl = $('account');
+    dl.textContent = '';
+    pairs.forEach(function (r) {
+      var w = document.createElement('div');
+      var dt = document.createElement('dt'); dt.textContent = r[0];
+      var dd = document.createElement('dd'); dd.textContent = r[1];
+      w.appendChild(dt); w.appendChild(dd); dl.appendChild(w);
+    });
+  }
+
+  function renderFollows() {
+    var follows = extras.follows || [];
+    $('followsec').hidden = !follows.length;
+    if (!follows.length) { return; }
+    var ul = $('follows');
+    ul.textContent = '';
+    var total = 0;
+    follows.forEach(function (f) {
+      total += f.episodes.length;
+      var li = document.createElement('li');
+      var fm = metaById[f.id] || {};
+      var av = avatarNode({ image: fm.poster, poster: true, name: fm.name || f.id });
+      var nm = document.createElement('span'); nm.className = 'pn';
+      nm.textContent = fm.name || f.id;
+      var de = document.createElement('span'); de.className = 'pl';
+      de.textContent = f.episodes.slice(0, 4).join(', ') +
+        (f.episodes.length > 4 ? ' +' + (f.episodes.length - 4) : '');
+      li.appendChild(av); li.appendChild(nm); li.appendChild(de);
+      ul.appendChild(li);
+    });
+    $('follownote').textContent = Provider() + ' is watching for new episodes of ' +
+      n(follows.length) + ' ' + plural(follows.length, 'series', 'series') +
+      ' and has flagged ' + n(total) + ' ' + plural(total, 'episode', 'episodes') +
+      ' you have not watched yet. This is how the apps know to tell you something has ' +
+      'landed. It lives in the export rather than the log.';
+  }
+
+  function renderExtras() {
+    var profiles = extras.profiles || [];
+    $('profilesec').hidden = !profiles.length;
+    if (profiles.length) {
+      var ul = $('profiles');
+      ul.textContent = '';
+      profiles.forEach(function (p) {
+        var li = document.createElement('li');
+        var av = avatarNode({ image: p.avatar, name: p.name, colour: p.colour });
+        var nm = document.createElement('span'); nm.className = 'pn'; nm.textContent = p.name;
+        var de = document.createElement('span'); de.className = 'pl'; de.textContent = p.detail;
+        li.appendChild(av); li.appendChild(nm); li.appendChild(de);
+        ul.appendChild(li);
+      });
+      $('profilenote').textContent = backendId === 'stremio'
+        ? 'Household profiles come with Stremio Supporter, and the account record ' +
+          'names each one and says whether it carries a PIN. It stores whether a PIN exists, ' +
+          'and never the PIN.'
+        : Provider() + ' keeps a profile per member of the household, which means it also ' +
+          'knows how many of you there are, and stores the PIN hash rather than just a flag.';
+    }
+
+    var publicly = extras.publicly || [];
+    if (publicly.length) {
+      var pn = $('profilenote');
+      pn.textContent = (pn.textContent ? pn.textContent + ' ' : '') + publicly.join(' ');
+    }
+
+    var withheld = extras.withheld || [];
+    $('withheldsec').hidden = !withheld.length;
+    if (withheld.length) {
+      var wl = $('withheld');
+      wl.textContent = '';
+      withheld.forEach(function (w) {
+        var li = document.createElement('li'); li.textContent = w; wl.appendChild(li);
+      });
+    }
+  }
+
+  function paint() {
+    var rows = allRows.filter(inRange);
+    var t = tally(rows);
+    var c = renderClock(rows);
+    renderHero(rows, t);
+    renderCards(t);
+    renderBadges(t, c, rows);
+    renderTop(rows);
+    renderGenres(rows);
+    renderDecades(rows);
+    renderPeople(rows);
+    renderTimeline();
+    renderYears();
+    renderExtras();
+    renderFollows();
+    renderShelfNote(t);
+    observeReveals();
+  }
+
+  // Worth spelling out, because the flag is easy to misread: in Stremio's own
+  // model a row starts out removed:true, temp:true the moment you open or play
+  // something. Being off the library shelf usually means it was never added,
+  // not that anyone deleted anything.
+  // The user-facing model is wrong if it is called a library. It is a log, and
+  // the app derives two views from it. Most rows are in neither.
+  function renderShelfNote(t) {
+    var list = $('shelfstates'), note = $('shelfnote');
+    list.textContent = '';
+    if (backendId !== 'stremio') {
+      note.textContent = t.offShelf
+        ? n(t.offShelf) + ' ' + plural(t.offShelf, 'entry has', 'entries have') +
+          ' playback recorded for a title that is not in your library.'
+        : '';
+      return;
+    }
+    var states = [
+      [t.viewContinue, 'Offered back in Continue Watching',
+       'It has a saved position, so the app suggests you resume it.'],
+      [t.viewLibrary, 'In your Library', 'Titles you added, to come back to later.'],
+      [t.viewNowhere, 'Not shown anywhere',
+       'Watched once and not added, or finished, or dismissed from Continue Watching. ' +
+       'Nothing lists it any more. Still stored.']
+    ];
+    states.forEach(function (row) {
+      var li = document.createElement('li');
+      var c = document.createElement('span'); c.className = 'c'; c.textContent = n(row[0]);
+      var l = document.createElement('span'); l.className = 'l';
+      var b = document.createElement('b'); b.textContent = row[1];
+      var sp = document.createElement('span'); sp.textContent = row[2];
+      l.appendChild(b); l.appendChild(sp);
+      li.appendChild(c); li.appendChild(l);
+      list.appendChild(li);
+    });
+    var share = t.total ? t.viewLibrary / t.total : 0;
+    note.textContent =
+      'How this splits depends on how much you use the Library. Some people curate it ' +
+      'closely, others rarely touch it. ' +
+      (share >= 0.2
+        ? 'You add a good share of what you watch. '
+        : 'Most of what you watch is played once and never added. ') +
+      'The entries remain either way. ' +
+      (t.takenOut === 0
+        ? 'None have been removed.'
+        : n(t.takenOut) + ' ' + plural(t.takenOut, 'entry was', 'entries were') + ' added and later removed.') +
+      ' An entry can sit in both of the first two, so these do not add up to ' + n(t.total) + '. ' +
+      'RePlay is reading the server\u2019s copy, which the apps push to on their own schedule, so a change ' +
+      'from the last few minutes may not be here yet.';
+  }
+
+  function setTimelineMode(mode) {
+    timelineMode = mode;
+    $('tl-played').setAttribute('aria-selected', mode === 'played' ? 'true' : 'false');
+    $('tl-all').setAttribute('aria-selected', mode === 'all' ? 'true' : 'false');
+    renderTimeline();
+  }
+  $('tl-played').addEventListener('click', function () { setTimelineMode('played'); });
+  $('tl-all').addEventListener('click', function () { setTimelineMode('all'); });
+  $('tl-expand').addEventListener('click', function () {
+    var open = $('timeline').classList.toggle('open');
+    this.textContent = open ? 'Collapse the timeline' : 'Show the whole timeline';
+  });
+
+  // ---- restoring from a downloaded copy ---------------------------------
+  // Stremio's export wraps each entry as {__id,_id,_mtime,d,user_id}, so the
+  // document lives in `d`. `_mtime` is bumped on the way back in, otherwise a
+  // device holding newer rows re-pushes them straight over the restore.
+  var restoreArmed = false;
+
+  function libraryFromFile(doc) {
+    var rows = null;
+    if (Array.isArray(doc)) { rows = doc; }
+    else if (doc && Array.isArray(doc.library)) { rows = doc.library; }
+    if (!rows) { return null; }
+    var now = new Date().toISOString();
+    return rows.map(function (r) {
+      var d = (r && r.d) ? r.d : r;
+      if (!d || !d._id) { return null; }
+      var copy = JSON.parse(JSON.stringify(d));
+      copy._mtime = now;
+      return copy;
+    }).filter(Boolean);
+  }
+
+  function resetRestore() {
+    restoreArmed = false;
+    $('restore-go').textContent = 'Restore from a file';
+  }
+  $('restore-file').addEventListener('change', function () {
+    resetRestore();
+    $('restore-msg').textContent = '';
+  });
+
+  $('restore-go').addEventListener('click', function () {
+    var msg = $('restore-msg');
+    var file = $('restore-file').files && $('restore-file').files[0];
+    if (!file) { msg.textContent = 'Choose a file RePlay gave you.'; return; }
+    var btn = this;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var doc;
+      try { doc = JSON.parse(reader.result); }
+      catch (e) { msg.textContent = 'That file is not JSON RePlay can read.'; return; }
+
+      if (backendId === 'stremio') {
+        var changes = libraryFromFile(doc);
+        if (!changes || !changes.length) { msg.textContent = 'No entries found in that file.'; return; }
+        if (!restoreArmed) {
+          restoreArmed = true;
+          btn.textContent = 'Yes, restore ' + n(changes.length) + ' ' + plural(changes.length, 'entry', 'entries');
+          msg.textContent = 'This writes over what is on the server now.';
+          return;
+        }
+        btn.disabled = true;
+        msg.textContent = 'Restoring\u2026';
+        var batches = [];
+        for (var i = 0; i < changes.length; i += 100) { batches.push(changes.slice(i, i + 100)); }
+        var done = 0;
+        (function next() {
+          if (!batches.length) {
+            btn.disabled = false; resetRestore();
+            msg.textContent = 'Restored ' + n(done) + '. Reading your record again\u2026';
+            review(null, true);
+            return;
+          }
+          var batch = batches.shift();
+          stremioCall('/api/datastorePut', {
+            type: 'DatastorePut', authKey: session.authKey,
+            collection: 'libraryItem', changes: batch
+          }).then(function () { done += batch.length; next(); })
+            .catch(function (err) {
+              btn.disabled = false; resetRestore();
+              msg.textContent = 'Stopped after ' + n(done) + '. ' + (err.message || 'The backend refused a write.');
+            });
+        })();
+        return;
+      }
+
+      // Nuvio and anything compatible take the whole envelope back in one call.
+      if (!restoreArmed) {
+        restoreArmed = true;
+        btn.textContent = 'Yes, restore this backup';
+        msg.textContent = 'This replaces the account contents on the server.';
+        return;
+      }
+      btn.disabled = true;
+      msg.textContent = 'Restoring\u2026';
+      rpc(session.cfg, 'sync_restore_account_backup', { p_backup: doc, p_mode: 'replace' })
+        .then(function () {
+          btn.disabled = false; resetRestore();
+          msg.textContent = 'Restored. Reading your record again\u2026';
+          review(null, true);
+        })
+        .catch(function (err) {
+          btn.disabled = false; resetRestore();
+          msg.textContent = err.message || 'The backend refused the restore.';
+        });
+    };
+    reader.readAsText(file);
+  });
+
+  // ---- clearing playback data -------------------------------------------
+  // Stremio has no per-entry delete, so this writes each entry back with its
+  // state zeroed. `removed` and `temp` are preserved, so nothing moves in or
+  // out of the Library; only the behavioural payload goes. `_mtime` has to be
+  // bumped or another device can resync the old values back over the top.
+  var clearArmed = false;
+
+  function clearableRows() {
+    var v = $('clear-scope').value;
+    return allRows.filter(function (r) {
+      if (!r.played) { return false; }
+      if (backendId === 'stremio' ? !r.rawId : !r.progressKey) { return false; }
+      if (v === 'all') { return true; }
+      if (!r.last) { return false; }
+      if (v.indexOf('before:') === 0) { return r.last.getFullYear() < Number(v.slice(7)); }
+      return r.last.getFullYear() === Number(v);
+    });
+  }
+
+  function clearVerb() { return backendId === 'stremio' ? 'Clear playback data' : 'Delete playback entries'; }
+  function resetClearButton() {
+    clearArmed = false;
+    $('clear-go').textContent = clearVerb();
+    $('clear-msg').textContent = '';
+  }
+
+  function fillClearScope() {
+    var canStremio = backendId === 'stremio' && allRows.some(function (r) { return r.rawId; });
+    var canNuvio = backendId !== 'stremio' && allRows.some(function (r) { return r.progressKey; });
+    if (!allRows.length || (!canStremio && !canNuvio)) { $('clear-option').hidden = true; return; }
+    $('clear-option').hidden = false;
+    $('clear-copy-stremio').hidden = !canStremio;
+    $('clear-copy-nuvio').hidden = canStremio;
+    var years = {};
+    allRows.forEach(function (r) { if (r.last && r.played) { years[r.last.getFullYear()] = 1; } });
+    var list = Object.keys(years).sort(function (a, b) { return b - a; });
+    var sel = $('clear-scope');
+    sel.textContent = '';
+    var opts = [['all', 'Everything']];
+    if (list.length > 1) { opts.push(['before:' + list[0], 'Everything before ' + list[0]]); }
+    list.forEach(function (y) { opts.push([y, 'Just ' + y]); });
+    opts.forEach(function (o) {
+      var el = document.createElement('option');
+      el.value = o[0]; el.textContent = o[1];
+      sel.appendChild(el);
+    });
+    resetClearButton();
+  }
+
+  function zeroed(row) {
+    return {
+      _id: row.rawId,
+      removed: row.shelf !== 'library',
+      temp: row.shelf === 'never-added',
+      _mtime: new Date().toISOString(),
+      state: {
+        lastWatched: '', timeWatched: 0, timeOffset: 0, overallTimeWatched: 0,
+        timesWatched: 0, flaggedWatched: 0, duration: 0, video_id: '', watched: '',
+        noNotif: false, season: 0, episode: 0
+      }
+    };
+  }
+
+  $('clear-scope').addEventListener('change', resetClearButton);
+
+  $('clear-go').addEventListener('click', function () {
+    var rows = clearableRows();
+    var msg = $('clear-msg');
+    if (!rows.length) { msg.textContent = 'Nothing to clear in that period.'; return; }
+    if (!clearArmed) {
+      clearArmed = true;
+      this.textContent = 'Yes, ' + (backendId === 'stremio' ? 'clear ' : 'delete ') +
+        n(rows.length) + ' ' + plural(rows.length, 'entry', 'entries');
+      msg.textContent = backendId === 'stremio'
+        ? 'Restoring your downloaded file undoes this. Click again to confirm.'
+        : 'This cannot be undone on a hosted Nuvio account. Click again to confirm.';
+      return;
+    }
+    var btn = this;
+    btn.disabled = true;
+    msg.textContent = 'Working\u2026';
+
+    // Nuvio can actually delete, so it does. Grouped by profile because the RPC
+    // takes one profile id per call.
+    if (backendId !== 'stremio') {
+      var byProfile = {};
+      rows.forEach(function (r) {
+        var pid = r.profileId || 1;
+        (byProfile[pid] = byProfile[pid] || []).push(r.progressKey);
+      });
+      var jobs = Object.keys(byProfile).map(function (pid) {
+        return { pid: Number(pid), keys: byProfile[pid] };
+      });
+      var removed = 0;
+      (function nextProfile() {
+        if (!jobs.length) {
+          btn.disabled = false; resetClearButton();
+          msg.textContent = 'Deleted ' + n(removed) + '. Reading your record again\u2026';
+          review(null, true);
+          return;
+        }
+        var job = jobs.shift();
+        rpc(session.cfg, 'sync_delete_watch_progress',
+            { p_keys: job.keys, p_profile_id: job.pid })
+          .then(function () { removed += job.keys.length; nextProfile(); })
+          .catch(function (err) {
+            btn.disabled = false; resetClearButton();
+            msg.textContent = 'Stopped after ' + n(removed) + '. ' +
+              (err.message || 'The backend refused the delete.');
+          });
+      })();
+      return;
+    }
+
+    var changes = rows.map(zeroed);
+    var batches = [];
+    for (var i = 0; i < changes.length; i += 100) { batches.push(changes.slice(i, i + 100)); }
+    var done = 0;
+    (function next() {
+      if (!batches.length) {
+        btn.disabled = false;
+        resetClearButton();
+        msg.textContent = 'Cleared ' + n(done) + '. Reading your record again\u2026';
+        review(null, true);
+        return;
+      }
+      var batch = batches.shift();
+      stremioCall('/api/datastorePut', {
+        type: 'DatastorePut', authKey: session.authKey,
+        collection: 'libraryItem', changes: batch
+      }).then(function () { done += batch.length; next(); })
+        .catch(function (err) {
+          btn.disabled = false;
+          resetClearButton();
+          msg.textContent = 'Stopped after ' + n(done) + '. ' + (err.message || 'The backend refused a write.');
+        });
+    })();
+  });
+
+  // ---- flow -------------------------------------------------------------
+  function review(e, resuming) {
+    if (e) { e.preventDefault(); }
+    clear();
+    $('go').disabled = true;
+    $('resume').hidden = true;
+
+    if (resuming && session) {
+      say('Reading your record…');
+      var again = session.kind === 'stremio'
+        ? readStremio({ authKey: session.authKey })
+        : readNuvioWithSession();
+      return finish(again);
+    }
+
+    wantsGuide = $('guide-optin').checked;
+    guideEmail = ((authMode === 'key'
+      ? $('guide-email').value : $('email').value) || '').trim();
+
+    var creds = {
+      email: ($('email').value || '').trim(),
+      password: $('password').value,
+      authKey: (backendId === 'stremio' && authMode === 'key')
+        ? ($('authkey').value || '').trim() : ''
+    };
+    return finish(backendId === 'stremio'
+      ? readStremio(creds)
+      : readNuvio(creds, ($('baseurl').value || '').trim()));
+  }
+
+  // A restored Nuvio session already holds base, key and token, so it skips the
+  // password grant entirely and goes straight to the reads.
+  function readNuvioWithSession() {
+    var cfg = session.cfg;
+    return Promise.all([
+      fetch(cfg.base + '/auth/v1/user', {
+        headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.token }
+      }).then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }),
+      rpc(cfg, 'sync_export_account_backup', {}),
+      rpc(cfg, 'sync_pull_profile_locks', {}).catch(function () { return null; }),
+      rpc(cfg, 'get_my_membership_overview', {}).catch(function () {
+        return rpc(cfg, 'get_my_member_access', {}).catch(function () { return null; });
+      })
+    ]).then(function (parts) {
+      return buildNuvio({ user: parts[0] || {}, backup: parts[1],
+                          locks: parts[2], member: parts[3] }, cfg);
+    });
+  }
+
+  function finish(read) {
+    read.then(function (result) {
+      provider = result.provider;
+      providerHost = result.providerHost || '';
+      handle = result.handle || '';
+      allRows = result.rows;
+      extras = result.extras || {};
+      renderAccount(result.account);
+
+      startSpells();
+      $('prog').hidden = false;
+      var bar = $('prog').firstElementChild;
+      var extra = (backendId === 'stremio' && session && session.authKey)
+        ? loadExport(session.authKey).then(function (doc) {
+            extras.follows = parseFollows(doc);
+            return extras.follows.map(function (f) {
+              return { id: f.id, type: 'series', played: true, poster: '', genres: [] };
+            });
+          })
+        : Promise.resolve([]);
+      return extra.then(function (followRows) {
+        return loadMeta(allRows.concat(followRows), function (done, total) {
+          bar.style.width = (done / total * 100) + '%';
+        });
+      });
+    }).then(function () {
+      stopSpells();
+      $('prog').hidden = true;
+      saveSession($('remember').checked);
+      $('dl-export').disabled = !exportDoc;
+      fillClearScope();
+      $('export-note').textContent = exportDoc
+        ? 'It includes your addon URLs, so treat the file like a password.'
+        : 'This backend did not return one.';
+      paint();
+      $('results').hidden = false;
+      $('actions').hidden = false;
+      syncColdCta();
+      $('signin').hidden = true;
+      $('signedin').hidden = false;
+      shownBackendId = backendId;
+      $('signedintext').textContent = 'Showing ' + (providerHost || provider) + '.';
+      if (wantsGuide) { subscribeGuide(guideEmail); }
+      clear();
+      window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+    }).catch(function (err) {
+      stopSpells();
+      $('prog').hidden = true;
+      // A restored key that the backend has since rejected should not strand
+      // the visitor on a dead resume prompt.
+      forgetSession(backendId);
+      say(err.message || 'Something went wrong.', true);
+    }).then(function () {
+      $('go').disabled = false;
+      $('password').value = '';
+    });
+  }
+  $('form').addEventListener('submit', review);
+
+  $('unmask').addEventListener('click', function () {
+    var dd = $('account').querySelector('dd');
+    var shown = this.dataset.shown === '1';
+    dd.textContent = shown ? maskEmail(realEmail) : (realEmail || 'not set');
+    this.dataset.shown = shown ? '0' : '1';
+    this.textContent = shown ? 'Show email address' : 'Hide email address';
+  });
+
+  $('signout').addEventListener('click', function () {
+    if (!session) { return; }
+    var btn = this;
+    btn.disabled = true;
+    var done = function () {
+      session = null;
+      forgetSession(backendId);
+      savedSession = null;
+      btn.textContent = 'Signed out. This session no longer works, here or upstream.';
+    };
+    if (session.kind === 'stremio') {
+      stremioCall('/api/logout', { type: 'Logout', authKey: session.authKey })
+        .catch(function () {}).then(done);
+    } else {
+      fetch(session.cfg.base + '/auth/v1/logout', {
+        method: 'POST',
+        headers: { 'apikey': session.cfg.key, 'Authorization': 'Bearer ' + session.cfg.token }
+      }).catch(function () {}).then(done);
+    }
+  });
+
+  // ---- resume ------------------------------------------------------------
+  // A stored session belongs to one backend, so the card has to be re-evaluated
+  // every time the picker changes. Showing the form unconditionally on a pill
+  // click made switching to Nuvio and back look like the Stremio session had
+  // been thrown away, when it was still in storage the whole time.
+  var savedSession = null;
+
+  function refreshResume() {
+    savedSession = loadSession(backendId);
+    if (!savedSession) { showSignInForm(true); return; }
+    $('remember').checked = !!savedSession._persistent;
+    $('resumetext').textContent = 'You are still signed in to ' +
+      (savedSession.kind === 'stremio'
+        ? 'Stremio'
+        : (savedSession.cfg ? hostOf(savedSession.cfg.base) : 'your backend')) +
+      (savedSession._persistent ? ' on this device.' : ' in this tab.');
+    showSignInForm(false);
+  }
+
+  $('resumego').addEventListener('click', function () {
+    if (!savedSession) { return; }
+    session = savedSession.kind === 'stremio'
+      ? { kind: 'stremio', authKey: savedSession.authKey }
+      : { kind: 'nuvio', cfg: savedSession.cfg };
+    review(null, true);
+  });
+  $('resumenew').addEventListener('click', function () {
+    forgetSession(backendId);
+    session = null;
+    savedSession = null;
+    showSignInForm(true);
+    $('email').focus();
+  });
+
+  var lastId = null;
+  try { lastId = window.sessionStorage.getItem(LAST_KEY); } catch (e) {}
+  var boot = (lastId && BACKENDS[lastId] && loadSession(lastId)) ? lastId
+           : (loadSession('stremio') ? 'stremio'
+           : (loadSession('nuvio') ? 'nuvio'
+           : (loadSession('custom') ? 'custom' : null)));
+  if (boot) {
+    backendId = boot;
+    backend = BACKENDS[backendId] || BACKENDS.stremio;
+    // The pills must follow, or a restored Nuvio session leaves Stremio lit.
+    Array.prototype.forEach.call($('backends').children, function (b) {
+      b.setAttribute('aria-selected', b.dataset.backend === backendId ? 'true' : 'false');
+    });
+    $('panel-url').hidden = backendId !== 'custom';
+    $('targethost').textContent = backend.host || 'the backend you name';
+  }
+  refreshResume();
+
+  // selectMode also writes the toggle's label, and it only ran on a backend
+  // switch or a click, so on a fresh load the button rendered with no text at
+  // all and looked absent until you switched away and back.
+  selectMode(true);
+  applyGuide();
+  syncColdCta();
+  $('version').textContent = (VERSION.indexOf('__') === 0 ? 'dev build' : VERSION) + ' \u00b7 ';
+  $('tzline').textContent = 'Times shown in ' + LOC.timeZone + ', formatted for ' + LOC.locale + '.';
+})();
+</script>
+</body>
+</html>
