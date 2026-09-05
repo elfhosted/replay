@@ -1162,10 +1162,42 @@
   }
   // `position` and `duration` are stored in seconds; older rows and some
   // backends write milliseconds. Anything past a couple of days can only be ms.
-  function toMs(v) {
+  // Nuvio stores milliseconds. This used to guess the unit per value, treating
+  // anything under 200000 as seconds, which turned a position of 7911 -- eight
+  // seconds into an episode -- into 7911 seconds, or 2.2 hours. Worse, the
+  // inflated position sailed past the 90% mark, so an episode barely started
+  // was reported as finished and credited with its whole runtime.
+  //
+  // The unit is now decided ONCE for the whole export, from the durations,
+  // which are always populated and are never plausibly a few seconds long. A
+  // per-value guess is what allowed two neighbouring rows to be read on
+  // different scales.
+  function unitScale(progress) {
+    var d = [], maxPos = 0;
+    progress.forEach(function (p) {
+      var x = Number(p && p.duration);
+      if (isFinite(x) && x > 0) { d.push(x); }
+      var q = Number(p && p.position);
+      if (isFinite(q) && q > maxPos) { maxPos = q; }
+    });
+    // Durations are the better signal, but a backend can omit them, in which
+    // case the longest position stands in: it approaches a full runtime.
+    var probe = 0;
+    if (d.length) { d.sort(function (a, b) { return a - b; }); probe = d[Math.floor(d.length / 2)]; }
+    else { probe = maxPos; }
+    if (!probe) { return 1; }
+    // Nothing anyone watches runs under a minute, so a figure below 60000
+    // cannot be milliseconds; and 60000 seconds is sixteen hours, longer than
+    // anything a library realistically holds. That splits the two scales for
+    // every plausible record, including a seconds-based backend whose longest
+    // item is a six-hour stream.
+    return probe < 60000 ? 1000 : 1;
+  }
+
+  function toMs(v, scale) {
     var x = Number(v || 0);
     if (!isFinite(x) || x <= 0) { return 0; }
-    return x > 200000 ? x : x * 1000;
+    return x * (scale || 1);
   }
 
   function nuvioRows(backup) {
@@ -1173,6 +1205,7 @@
     var library  = collect(backup, function (o) { return has(o, 'content_id') && has(o, 'name'); });
     var watched  = collect(backup, function (o) { return has(o, 'content_id') && has(o, 'watched_at'); });
 
+    var scale = unitScale(progress);
     var byKey = {}, inLibrary = {};
     var keyOf = function (o) {
       return String(o.content_id) + ':' + (Number(o.season) || 0) + ':' + (Number(o.episode) || 0);
@@ -1184,7 +1217,11 @@
 
     progress.forEach(function (p) {
       var lib = inLibrary[String(p.content_id)] || {};
-      var pos = toMs(p.position), dur = toMs(p.duration);
+      var dur = toMs(p.duration, scale);
+      // A position past the end of the file is not a longer viewing, it is bad
+      // data. Cap it so one row cannot invent hours that were never watched.
+      var pos = toMs(p.position, scale);
+      if (dur > 0 && pos > dur) { pos = dur; }
       byKey[keyOf(p)] = {
         key: keyOf(p), id: String(p.content_id), videoId: p.video_id || String(p.content_id),
         type: (p.content_type === 'series' || Number(p.season) > 0) ? 'series' : 'movie',
