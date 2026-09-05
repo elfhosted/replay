@@ -1908,7 +1908,7 @@
       byTitle[r.id].plays += r.plays || 1;
     });
     var top = Object.keys(byTitle).map(function (k) { return byTitle[k]; })
-      .sort(function (a, b) { return b.ms - a.ms || b.plays - a.plays; }).slice(0, 5);
+      .sort(function (a, b) { return b.ms - a.ms || b.plays - a.plays; }).slice(0, 10);
 
     var ol = $('top');
     ol.textContent = '';
