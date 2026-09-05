@@ -385,6 +385,7 @@
     <div class="switch" id="months" hidden style="margin-top:.5rem"></div>
 
     <div class="cards" id="cards"></div>
+    <p class="fine" id="hoursnote" style="margin-top:.7rem" hidden></p>
     <ul class="shelf" id="shelfstates"></ul>
     <p class="fine" id="shelfnote" style="margin-top:.9rem"></p>
 
@@ -1561,7 +1562,7 @@
   function tally(rows) {
     var t = { total: rows.length, inLibrary: 0, neverAdded: 0, takenOut: 0, offShelf: 0,
               played: 0, openedOnly: 0, ms: 0, oldest: null, rewatched: 0,
-              abandoned: 0, finished: 0,
+              abandoned: 0, finished: 0, cappedMs: 0, cappedCount: 0,
               viewLibrary: 0, viewContinue: 0, viewNowhere: 0 };
     rows.forEach(function (r) {
       if (r.shelf === 'library') { t.inLibrary++; } else { t.offShelf++; }
@@ -1577,7 +1578,6 @@
         var p = r.positionMs / r.durationMs;
         if (p > 0.05 && p < 0.85) { t.abandoned++; }
       }
-      t.ms += r.watchedMs;
       var c = r.created || r.last;
       if (c && (!t.oldest || c < t.oldest)) { t.oldest = c; }
     });
@@ -1593,6 +1593,50 @@
     };
     t.avgRating = ratings.length ? Math.round(avg(ratings) * 10) / 10 : 0;
     t.avgRuntime = runtimes.length ? Math.round(avg(runtimes)) : 0;
+
+    // You cannot have watched more of something than its runtime, however many
+    // times you went back to it. Stremio's overallTimeWatched does not hold to
+    // that for series: it accumulates across episodes and reads about 1.7x what
+    // the episode count and runtime allow, so a series watched once is reported
+    // as though watched twice. Measured on a real account, 56 series claimed
+    // 612 hours where their runtimes allow 386.
+    //
+    // Each row is capped at what its runtime permits, taking the runtime the
+    // metadata lists where there is one and the file's own duration otherwise.
+    // Movies are already honest (they measure at 0.93 of that ceiling) so the
+    // cap does not touch them, and the Nuvio backends are clamped per row
+    // before this, so it never binds there either.
+    rows.forEach(function (r) {
+      r.effectiveMs = r.watchedMs;
+      // The longer of the two ceilings, never the shorter: an extended cut runs
+      // past the runtime the metadata lists, and trimming to the listed figure
+      // would quietly under-report a viewing that genuinely happened. Time is
+      // only removed when it exceeds both what the metadata lists and the file
+      // that was actually played.
+      var mins = runtimeMin(r);
+      var unit = Math.max(mins ? mins * 60000 : 0, r.durationMs || 0);
+      if (unit > 0) {
+        var ceiling = unit * Math.max(r.plays || 0, 1);
+        // For a series the unit is only the episode this row happens to
+        // describe, while the time spans every episode watched, and episodes
+        // vary: a feature-length opener against a half-hour regular. Allow for
+        // that rather than trim viewing that really happened. The inflation
+        // being corrected here is around twofold, so this still catches it.
+        if (r.type === 'series') { ceiling *= 1.2; }
+        // A viewing in progress on top of the completed ones is real time that
+        // the completed-play count has not caught up with yet. A position
+        // sitting at the end of the file is the last completed play, not an
+        // extra one, so it earns no allowance.
+        var pos = r.positionMs || 0;
+        if (pos > 0 && pos < unit * 0.9) { ceiling += pos; }
+        if (r.effectiveMs > ceiling) {
+          t.cappedMs += r.effectiveMs - ceiling;
+          t.cappedCount++;
+          r.effectiveMs = ceiling;
+        }
+      }
+      t.ms += r.effectiveMs;
+    });
     return t;
   }
 
@@ -1635,7 +1679,10 @@
 
   function renderHero(rows, t) {
     setHeroArt(rows.filter(function (r) { return r.played; })
-      .sort(function (a, b) { return b.watchedMs - a.watchedMs; })
+      .sort(function (a, b) {
+        return (b.effectiveMs != null ? b.effectiveMs : b.watchedMs) -
+               (a.effectiveMs != null ? a.effectiveMs : a.watchedMs);
+      })
       .map(function (r) { return r.background || meta(r).background; }));
     $('heroperiod').textContent = yearFilter === 'all'
       ? (t.oldest ? 'Since ' + fmtFull.format(t.oldest) : 'All time')
@@ -1657,6 +1704,21 @@
   }
 
   function renderCards(t) {
+    // Where the total differs from what the backend claims, say so. The page is
+    // only worth anything if it explains its own numbers.
+    var hn = $('hoursnote');
+    var trimmed = Math.round(t.cappedMs / 3600000);
+    if (t.cappedCount && trimmed >= 1) {
+      hn.textContent = n(t.cappedCount) + ' ' + (t.cappedCount === 1 ? 'title reports' : 'titles report') +
+        ' more time than ' + (t.cappedCount === 1 ? 'its' : 'their') + ' runtime allows. ' +
+        backend.name + ' adds playback time up across sessions, and across episodes for a series, ' +
+        'so a title can total more than it can possibly run. ' +
+        (t.cappedCount === 1 ? 'It is' : 'They are') + ' counted here at what the runtime permits, about ' +
+        n(trimmed) + ' hours below the figure the backend reports.';
+      hn.hidden = false;
+    } else {
+      hn.hidden = true;
+    }
     var defs = [
       ['tint1', Math.round(t.ms / 3600000), 'hours of playback logged', '\u23F3'],
       ['tint2', t.played, 'titles you actually played', '\u25B6\uFE0F'],
@@ -1773,7 +1835,7 @@
     play.forEach(function (r) {
       var k = r.last.getFullYear() + '-' + r.last.getMonth() + '-' + r.last.getDate();
       days[k] = 1;
-      msByDay[k] = (msByDay[k] || 0) + (r.watchedMs || 0);
+      msByDay[k] = (msByDay[k] || 0) + ((r.effectiveMs != null ? r.effectiveMs : r.watchedMs) || 0);
     });
     var keys = Object.keys(days).map(function (k) { var a = k.split('-'); return new Date(+a[0], +a[1], +a[2]).getTime(); }).sort(function (a, b) { return a - b; });
     var run = keys.length ? 1 : 0, best = run, DAY = 86400000;
@@ -1842,7 +1904,7 @@
     var byTitle = {};
     rows.filter(function (r) { return r.played; }).forEach(function (r) {
       if (!byTitle[r.id]) { byTitle[r.id] = { row: r, ms: 0, plays: 0 }; }
-      byTitle[r.id].ms += r.watchedMs;
+      byTitle[r.id].ms += (r.effectiveMs != null ? r.effectiveMs : r.watchedMs);
       byTitle[r.id].plays += r.plays || 1;
     });
     var top = Object.keys(byTitle).map(function (k) { return byTitle[k]; })
