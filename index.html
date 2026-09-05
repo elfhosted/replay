@@ -1358,7 +1358,13 @@
       if (!/^tt\d+$/.test(r.id) || seen[r.id]) { return; }
       if (r.type !== 'movie' && r.type !== 'series') { return; }
       if (!r.played) { return; }
-      if (r.poster && r.genres.length) { return; }
+      // Artwork and genres being present is not a reason to skip: a row the
+      // backend recorded as watched without any playback time needs a runtime
+      // to be counted at all, and the runtime only comes from Cinemeta. Nuvio
+      // library items carry a poster, so skipping these left exactly the rows
+      // this matters for without a runtime.
+      var needsRuntime = r.played && r.watchedMs <= 0 && r.positionMs <= 0;
+      if (r.poster && r.genres.length && !needsRuntime) { return; }
       seen[r.id] = 1;
       jobs.push({ id: r.id, kind: r.type });
     });
@@ -1563,6 +1569,7 @@
     var t = { total: rows.length, inLibrary: 0, neverAdded: 0, takenOut: 0, offShelf: 0,
               played: 0, openedOnly: 0, ms: 0, oldest: null, rewatched: 0,
               abandoned: 0, finished: 0, cappedMs: 0, cappedCount: 0,
+              estMs: 0, estCount: 0,
               viewLibrary: 0, viewContinue: 0, viewNowhere: 0 };
     rows.forEach(function (r) {
       if (r.shelf === 'library') { t.inLibrary++; } else { t.offShelf++; }
@@ -1615,6 +1622,34 @@
       // that was actually played.
       var mins = runtimeMin(r);
       var unit = Math.max(mins ? mins * 60000 : 0, r.durationMs || 0);
+      // A backend can record that you watched something without recording how
+      // long for. Nuvio's watched_items carries no duration at all -- it is
+      // what you get when you mark something watched rather than play it, or
+      // when you watched it elsewhere first -- and Stremio can flag an item
+      // watched having never reported playback. Counted as nothing, a series
+      // you marked off entirely reads as no time at all, which is exactly what
+      // it did. Count it at what it runs for, and say below how much that is.
+      // Only where this title has a runtime of its own. Falling back to the
+      // account average credited live TV channels with an hour and a half
+      // apiece, which is inventing viewing rather than reporting it: a channel
+      // has no runtime because it does not have one, and tv, events and other
+      // rows are not the kind of thing this can be estimated for at all.
+      if (r.effectiveMs <= 0 && r.played) {
+        if (r.positionMs > 0) {
+          // Progress was recorded, the file's length simply was not. How far in
+          // they got is measured time and belongs in the total; crediting a
+          // whole runtime here would turn a few minutes into a full viewing.
+          r.effectiveMs = r.positionMs;
+        } else if (unit > 0 && (r.type === 'movie' || r.type === 'series')) {
+          // plays counts every viewing ever, while a filtered view covers one
+          // period, so multiplying by it there would charge a whole history to
+          // whichever month happens to hold the latest date.
+          var times = yearFilter === 'all' ? Math.max(r.plays || 0, 1) : 1;
+          r.effectiveMs = unit * times;
+          t.estMs += r.effectiveMs;
+          t.estCount++;
+        }
+      }
       if (unit > 0) {
         var ceiling = unit * Math.max(r.plays || 0, 1);
         // For a series the unit is only the episode this row happens to
@@ -1707,20 +1742,30 @@
     // Where the total differs from what the backend claims, say so. The page is
     // only worth anything if it explains its own numbers.
     var hn = $('hoursnote');
+    var parts = [];
+    var estimated = Math.round(t.estMs / 3600000);
+    if (t.estCount && estimated >= 1) {
+      parts.push(n(t.estCount) + ' ' + (t.estCount === 1 ? 'entry was' : 'entries were') +
+        ' marked watched without any playback time recorded, which is what happens when you ' +
+        'mark something watched rather than play it. ' + (t.estCount === 1 ? 'It is' : 'They are') +
+        ' counted at the runtime the metadata lists, so ' + (estimated === 1
+          ? 'about an hour of this total is an estimate rather than a measurement.'
+          : 'about ' + n(estimated) + ' of these hours are an estimate rather than a measurement.'));
+    }
     var trimmed = Math.round(t.cappedMs / 3600000);
     if (t.cappedCount && trimmed >= 1) {
-      hn.textContent = n(t.cappedCount) + ' ' + (t.cappedCount === 1 ? 'title reports' : 'titles report') +
+      parts.push(n(t.cappedCount) + ' ' + (t.cappedCount === 1 ? 'title reports' : 'titles report') +
         ' more time than ' + (t.cappedCount === 1 ? 'its' : 'their') + ' runtime allows. ' +
         backend.name + ' adds playback time up across sessions, and across episodes for a series, ' +
         'so a title can total more than it can possibly run. ' +
         (t.cappedCount === 1 ? 'It is' : 'They are') + ' counted here at what the runtime permits, about ' +
-        n(trimmed) + ' hours below the figure the backend reports.';
-      hn.hidden = false;
-    } else {
-      hn.hidden = true;
+        n(trimmed) + ' hours below the figure the backend reports.');
     }
+    hn.textContent = parts.join(' ');
+    hn.hidden = !parts.length;
     var defs = [
-      ['tint1', Math.round(t.ms / 3600000), 'hours of playback logged', '\u23F3'],
+      ['tint1', Math.round(t.ms / 3600000),
+       t.estCount ? 'hours of watching, part of it estimated' : 'hours of playback logged', '\u23F3'],
       ['tint2', t.played, 'titles you actually played', '\u25B6\uFE0F'],
       ['tint3', t.viewNowhere || t.offShelf,
         t.viewNowhere ? 'not listed anywhere, still stored'
