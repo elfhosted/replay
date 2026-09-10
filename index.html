@@ -1642,6 +1642,21 @@
       var a = durs[k].sort(function (x, y) { return x - y; });
       typical[k] = a.length ? a[Math.floor(a.length / 2)] : 0;
     });
+    // A single yardstick for things whose own length can never be known, taken
+    // only from films and episodes, because those are the rows whose length can
+    // be checked against a runtime. Never from the same untrustworthy type: a
+    // channel claiming 4600 hours would otherwise be its own evidence.
+    var checkable = durs.movie.concat(durs.series).sort(function (x, y) { return x - y; });
+    var typicalAny = checkable.length ? checkable[Math.floor(checkable.length / 2)] : 0;
+    // The ceiling for things whose own length can never be known is the longest
+    // film or episode this account has actually sat through, not the typical
+    // one: an event or a sports fixture legitimately runs past a median
+    // half-hour episode, and the median would have thrown that viewing away.
+    // Six hours stands in for an account holding nothing measurable at all,
+    // because falling back to the stream's own figure would restore exactly the
+    // number this rejects.
+    var longestCheckable = checkable.length ? checkable[checkable.length - 1] : 0;
+    var sittingCap = longestCheckable > 0 ? longestCheckable : 6 * 3600000;
 
     rows.forEach(function (r) {
       r.effectiveMs = r.watchedMs;
@@ -1651,7 +1666,15 @@
       // only removed when it exceeds both what the metadata lists and the file
       // that was actually played.
       var mins = runtimeMin(r);
-      var unit = Math.max(mins ? mins * 60000 : 0, r.durationMs || 0);
+      // A file claiming to run longer than half a day is a live stream rather
+      // than a recording, and its duration is no better founded than the watch
+      // time sitting next to it: one account carried 4,600 hours in both fields
+      // for a channel opened once, so the bad number was its own ceiling.
+      // Below that the file length is real evidence, and a recorded position is
+      // already clamped to it, so a two-hour event in a three-hour video keeps
+      // its two hours.
+      var fileMs = (r.durationMs > 0 && r.durationMs <= 12 * 3600000) ? r.durationMs : 0;
+      var unit = Math.max(mins ? mins * 60000 : 0, fileMs);
       // A backend can record that you watched something without recording how
       // long for. Nuvio's watched_items carries no duration at all -- it is
       // what you get when you mark something watched rather than play it, or
@@ -1691,8 +1714,22 @@
       // minutes of recorded progress down to 26 because other episodes are
       // shorter. Rows estimated from the median above are already exactly at
       // their own ceiling, so they lose nothing by being left alone here.
-      if (unit > 0) {
-        var ceiling = unit * Math.max(r.plays || 0, 1);
+      // A live channel or an event has no runtime and no duration: nothing the
+      // backend says about it can be checked, and unbounded is how one account
+      // came to report 4,600 hours on a channel opened once. Those get the only
+      // yardstick there is, a typical viewing, and only ever as a ceiling.
+      // For a film or an episode, both inputs to unit are checkable: a runtime
+      // from the metadata, or the length of the file that was played. For a
+      // live channel neither exists, and the "duration" the stream reports is
+      // as unfounded as the watch time itself -- one account had both at 4,600
+      // hours for a channel opened once, so the garbage was its own ceiling.
+      // Those are bounded by a typical viewing instead.
+      // Films and episodes are bounded by their own runtime. Anything else has
+      // none, so where its file length was not credible either, the longest
+      // sitting this account can evidence stands in.
+      var capUnit = (r.type === 'movie' || r.type === 'series') ? unit : (unit || sittingCap);
+      if (capUnit > 0) {
+        var ceiling = capUnit * Math.max(r.plays || 0, 1);
         // For a series the unit is only the episode this row happens to
         // describe, while the time spans every episode watched, and episodes
         // vary: a feature-length opener against a half-hour regular. Allow for
@@ -1704,7 +1741,7 @@
         // sitting at the end of the file is the last completed play, not an
         // extra one, so it earns no allowance.
         var pos = r.positionMs || 0;
-        if (pos > 0 && pos < unit * 0.9) { ceiling += pos; }
+        if (pos > 0 && pos < capUnit * 0.9) { ceiling += pos; }
         if (r.effectiveMs > ceiling) {
           t.cappedMs += r.effectiveMs - ceiling;
           t.cappedCount++;
@@ -1799,9 +1836,10 @@
       parts.push(n(t.cappedCount) + ' ' + (t.cappedCount === 1 ? 'title reports' : 'titles report') +
         ' more time than ' + (t.cappedCount === 1 ? 'its' : 'their') + ' runtime allows. ' +
         backend.name + ' adds playback time up across sessions, and across episodes for a series, ' +
-        'so a title can total more than it can possibly run. ' +
-        (t.cappedCount === 1 ? 'It is' : 'They are') + ' counted here at what the runtime permits, about ' +
-        n(trimmed) + ' hours below the figure the backend reports.');
+        'so a title can total more than it can possibly run, and a live channel has no runtime ' +
+        'to be checked against at all. ' +
+        (t.cappedCount === 1 ? 'It is' : 'They are') + ' counted here at what a viewing can ' +
+        'plausibly run to, about ' + n(trimmed) + ' hours below the figure the backend reports.');
     }
     hn.textContent = parts.join(' ');
     hn.hidden = !parts.length;
